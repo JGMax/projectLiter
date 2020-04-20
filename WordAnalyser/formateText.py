@@ -16,4 +16,3 @@ def strBetween(value, between):
             string += c
     string = string.rstrip()
     return string
-
