@@ -9,13 +9,13 @@ from natasha import SimpleNamesExtractor
 
 from polyglot.detect import Detector
 from polyglot.text import Text
-from projectLiter.WordAnalyser.formatText import remove
+from projectLiter.WordAnalyser.formatText import formatText
 from projectLiter.WordAnalyser.utility import morphNameFilter
 from projectLiter.WordAnalyser.utility import sameNameFilter
+from projectLiter.WordAnalyser.utility import properNameFilter
 
 
-def morphAnalysisText(text, postsList, statisticList, morph):
-    words = text.split(' ')
+def morphAnalysisText(words, postsList, statisticList, morph):
     for word in words:
         analyseResult = morph.parse(word.lower())[0]
         if analyseResult.tag.POS:
@@ -34,17 +34,32 @@ with codecs.open('text.txt', encoding='utf-8') as f:
 
 morph = pymorphy2.MorphAnalyzer()
 
+triggerSymbols = ['.', '!', '?', '"', '«']
+removeSymbols = '»,:;()\r'
+textFormat = formatText(text, removeSymbols, triggerSymbols)
+words = textFormat.split(' ')
+
 detector = Detector(text)  # polyglot
 print(detector.language)
 
-text = remove(text, '«»,":;()\r')
+characters = []
+extractor = NamesExtractor()  # Natasha
+matches = extractor(text)
+for match in matches:
+    character = ''
+    parseResult = []
+    for fact in match.fact:
+        if fact:
+            parseResult.append(morph.parse(fact.lower()))
+    parseResult = morphNameFilter(parseResult, 0, 0, 0, 0, 0)
+    if parseResult[0] == "1":
+        for fact in match.fact:
+            if fact:
+                character += fact.title() + ' '
+        character = character.strip()
+        sameNameFilter(characters, character, morph)
 
-text = text.replace('\n', ' ')
-text = text.replace('.', ' ')
-text = text.replace('!', ' ')
-text = text.replace('?', ' ')
-# text = text.replace('ё', 'е')
-
+print(characters)
 
 polycharacters = []
 polytext = Text(text)
@@ -65,36 +80,18 @@ for entity in polytext.entities:
                     if not word == "1":
                         character += word.title() + ' '
                 character = character.strip()
-                sameNameFilter(polycharacters, character)
-
-print(polycharacters)
+                sameNameFilter(polycharacters, character, morph)
 
 extractor = SimpleNamesExtractor()  # Natasha
 polycharacters = [item for item in polycharacters if not extractor(item)]
 
+properNameFilter(polycharacters, words, triggerSymbols, morph)
+
 print(polycharacters)
 
-characters = []
-extractor = NamesExtractor()  # Natasha
-matches = extractor(text)
-for match in matches:
-    character = ''
-    parseResult = []
-    for fact in match.fact:
-        if fact:
-            parseResult.append(morph.parse(fact.lower()))
-    parseResult = morphNameFilter(parseResult, 0, 0, 0, 0, 0)
-    if parseResult[0] == "1":
-        for fact in match.fact:
-            if fact:
-                character += fact.title() + ' '
-        character = character.strip()
-        sameNameFilter(characters, character)
-
-print(characters)
 statistic = {}
 posts = []
-morphAnalysisText(text, posts, statistic, morph)
+morphAnalysisText(words, posts, statistic, morph)
 
 # for post in posts:
    # print(post + ' - ' + str(statistic[post]))
