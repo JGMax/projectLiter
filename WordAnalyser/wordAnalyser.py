@@ -2,42 +2,71 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from navec import Navec
+from slovnet import NER
+
 import pymorphy2
 import codecs
 from natasha import NamesExtractor
-from natasha import SimpleNamesExtractor
 
 from polyglot.detect import Detector
 from polyglot.text import Text
+
 from projectLiter.WordAnalyser.formatText import formatText
+from projectLiter.WordAnalyser.formatText import remove
+
 from projectLiter.WordAnalyser.utility import morphNameFilter
 from projectLiter.WordAnalyser.utility import sameNameFilter
 from projectLiter.WordAnalyser.utility import properNameFilter
+from projectLiter.WordAnalyser.utility import wordsCounterDict
 
+from projectLiter.WordAnalyser.config import triggerSymbols
+from projectLiter.WordAnalyser.config import removeSymbols
+from projectLiter.WordAnalyser.config import nerModelPath
+from projectLiter.WordAnalyser.config import nevecModelPath
+from projectLiter.WordAnalyser.morphAnalysis import morphAnalysisRusText
 
-def morphAnalysisText(words, postsList, statisticList, morph):
-    for word in words:
-        analyseResult = morph.parse(word.lower())[0]
-        if analyseResult.tag.POS:
-            if analyseResult.tag.POS not in posts:
-                postsList.append(analyseResult.tag.POS)
-                statisticList[analyseResult.tag.POS] = 0
-
-            statisticList[analyseResult.tag.POS] += 1
-        else:
-            words.remove(word)
-
-
-with codecs.open('text.txt', encoding='utf-8') as f:
-    text = f.read()
-    f.close()
+from nltk.tokenize import word_tokenize
 
 morph = pymorphy2.MorphAnalyzer()
 
-triggerSymbols = ['.', '!', '?', '"', '«']
-removeSymbols = '»,:;()\r'
-textFormat = formatText(text, removeSymbols, triggerSymbols)
-words = textFormat.split(' ')
+with codecs.open('text.txt', encoding='utf-8') as f:
+    text = f.read()
+    print("Подготовка текста...")
+    textFormat = formatText(text, removeSymbols, triggerSymbols)
+    words = word_tokenize(text)
+    wordsDict = wordsCounterDict(words, morph)
+    print("Анализ...")
+    f.close()
+
+
+navec = Navec.load(nevecModelPath)
+ner = NER.load(nerModelPath)
+ner.navec(navec)
+
+slovCharacters = []
+for span in ner(text).spans:
+    if span.type == 'PER':
+        parseResult = []
+        character = ""
+        namePerWord = text[span.start:span.stop].split(' ')
+        for word in namePerWord:
+            parseResult.append(morph.parse(word.lower()))
+        parseResult = morphNameFilter(parseResult, 0, 0, 0, 0, 0)
+        if parseResult[0] == "1":
+            character = text[span.start:span.stop]
+            character = remove(character, triggerSymbols)
+            character = properNameFilter(character, text, wordsDict, triggerSymbols, morph, [span.start, span.stop])
+            if character:
+                sameNameFilter(slovCharacters, character, morph)
+
+
+# extractor = SimpleNamesExtractor()  # Natasha
+# simpleCharacters = [item for item in slovCharacters if extractor(item)]
+# slovCharacters = [item for item in slovCharacters if not extractor(item)]
+
+# print(simpleCharacters)
+print(slovCharacters)
 
 detector = Detector(text)  # polyglot
 print(detector.language)
@@ -82,16 +111,18 @@ for entity in polytext.entities:
                 character = character.strip()
                 sameNameFilter(polycharacters, character, morph)
 
-extractor = SimpleNamesExtractor()  # Natasha
-polycharacters = [item for item in polycharacters if not extractor(item)]
+# extractor = SimpleNamesExtractor()  # Natasha
+# polycharacters = [item for item in polycharacters if not extractor(item)]
 
-properNameFilter(polycharacters, words, triggerSymbols, morph)
+# properNameFilter(polycharacters, words, triggerSymbols, morph)
 
-print(polycharacters)
+# print(polycharacters)
 
 statistic = {}
 posts = []
-morphAnalysisText(words, posts, statistic, morph)
+morphAnalysisRusText(words, posts, statistic, morph)
+
+del morph
 
 # for post in posts:
    # print(post + ' - ' + str(statistic[post]))

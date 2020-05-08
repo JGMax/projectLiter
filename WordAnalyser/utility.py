@@ -1,3 +1,14 @@
+
+def wordsCounterDict(wordsList, morph):
+    wordsDict = {}
+    for word in wordsList:
+        word = morph.parse(word.lower())[0].normal_form
+        if word in wordsDict:
+            wordsDict[word] += 1
+        else:
+            wordsDict[word] = 1
+    return wordsDict
+
 def sameNameFilter(charactersList, characterString, morph):
     if not charactersList:
         charactersList.append(characterString)
@@ -38,10 +49,10 @@ def morphNameFilter(resultsList, wordNumber, case, gender, number, tense):
         if result.tag.POS:
             if "NOUN" in result.tag.POS or "ADJF" in result.tag.POS or "ADJS" in result.tag.POS:
                 if wordNumber > 0:
-                    if (case == result.tag.case and gender == result.tag.gender and number == result.tag.number
-                            and tense == result.tag.tense):
-                        findResult = morphNameFilter(resultsList, wordNumber + 1, case, gender,
-                                                                  number, tense)
+                    if ((not case or case == result.tag.case) and (not gender or gender == result.tag.gender) and
+                            (not number or number == result.tag.number) and
+                            (not tense or tense == result.tag.tense)):
+                        findResult = morphNameFilter(resultsList, wordNumber + 1, case, gender, number, tense)
                         if findResult[0] == "1":
                             findResult.append(result.normal_form)
                             break
@@ -59,27 +70,43 @@ def morphNameFilter(resultsList, wordNumber, case, gender, number, tense):
     return findResult
 
 
-def properNameFilter(characterList, wordsList, triggerList, morph):
-    i = 0
-    while i < len(characterList):
-        j = 0
-        while j < len(wordsList):
-            if morph.parse(wordsList[j].lower())[0].normal_form == morph.parse(characterList[i].lower())[0].normal_form:
-                if not wordsList[j].istitle():
-                    characterList.pop(i)
-                    i -= 1
-                    break
-                elif not j == 0:
-                    for item in triggerList:
-                        if item == wordsList[j - 1]:
-                            break
-                    else:
-                        break
-            elif not wordsList[j]:
-                wordsList.pop(j)
-                j -= 1
-            j += 1
+# def properNameFilter(characterList, wordsList, triggerList, morph):
+#     i = 0
+#     while i < len(characterList):
+#         j = 0
+#         while j < len(wordsList):
+#             if morph.parse(wordsList[j].lower())[0].normal_form == morph.parse(characterList[i].lower())[0].normal_form:
+#                 if not wordsList[j].istitle():
+#                     characterList.pop(i)
+#                     i -= 1
+#                     break
+#                 elif not j == 0:
+#                     for item in triggerList:
+#                         if item == wordsList[j - 1]:
+#                             break
+#                     else:
+#                         break
+#             elif not wordsList[j]:
+#                 wordsList.pop(j)
+#                 j -= 1
+#             j += 1
+#         else:
+#             characterList.pop(i)
+#             i -= 1
+#         i += 1
+
+def properNameFilter(characterString, text, wordsDict, triggeredSymbols, morph, slice=None):
+    characterWords = characterString.split(" ")
+    for i, word in enumerate(characterWords):
+        characterWords[i] = morph.parse(word.lower())[0].normal_form
+    if slice:
+        for trigger in triggeredSymbols:
+            if (slice[0] > 0 and trigger in text[slice[0] - 1]) or (slice[0] > 1 and trigger in text[slice[0] - 2]):
+                break
         else:
-            characterList.pop(i)
-            i -= 1
-        i += 1
+            if wordsDict[characterWords[0]] > 1:
+                return characterString
+        return None
+    else:
+        return None
+

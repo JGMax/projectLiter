@@ -8,5 +8,5 @@ def formatText(editText, stringToRemove, listOfTriggers):
     editText = remove(editText, stringToRemove)
     editText = editText.replace('\n', ' ')
     for item in listOfTriggers:
-        editText = editText.replace(item, ' ' + item + ' ')
+        editText = editText.replace(item, f' {item} ')
     return editText
