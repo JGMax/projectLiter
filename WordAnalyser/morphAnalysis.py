@@ -1,4 +1,4 @@
-def morphAnalysisRusText(wordsList, postsList, statisticList, morph):
+def morphAnalysisRus(wordsList, postsList, statisticList, morph):
     for word in wordsList:
         analyseResult = morph.parse(word.lower())[0]
         if analyseResult.tag.POS:

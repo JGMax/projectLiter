@@ -1,48 +1,109 @@
 
 def wordsCounterDict(wordsList, morph):
     wordsDict = {}
-    for word in wordsList:
+    for i, word in enumerate(wordsList):
         word = morph.parse(word.lower())[0].normal_form
         if word in wordsDict:
-            wordsDict[word] += 1
+            wordsDict[word][0] += 1
+            wordsDict[word].append(i)
         else:
-            wordsDict[word] = 1
+            wordsDict[word] = [1, i]
     return wordsDict
+
+
+# def sameNameFilter(charactersList, characterString, morph):
+#     if not charactersList:
+#         charactersList.append(characterString)
+#     else:
+#         characterWords = characterString.split(' ')
+#         doNotAdd = 0
+#         for item in charactersList:
+#             doNotAdd = 0
+#             itemWords = item.split(' ')
+#             # i = 0
+#             # j = 0
+#             # k = 0
+#
+#             for iword in itemWords:
+#                 # iword = morph.parse(iword.lower())[0].normal_form
+#                 for cword in characterWords:
+#                     # cword = morph.parse(cword.lower())[0].normal_form
+#                     if cword in iword:
+#                         doNotAdd += 1
+#                         break
+#             if doNotAdd == len(characterWords):
+#                 break
+#             elif doNotAdd == len(itemWords):
+#                 charactersList[charactersList.index(item)] = characterString
+#                 doNotAdd = len(charactersList)
+#                 break
+#         if doNotAdd < len(characterWords):
+#             charactersList.append(characterString)
 
 def sameNameFilter(charactersList, characterString, morph):
     if not charactersList:
         charactersList.append(characterString)
+        return charactersList
     else:
+        parseResult = []
         characterWords = characterString.split(' ')
-        doNotAdd = 0
+
+        for word in characterWords:
+            parseResult.append(morph.parse(word.lower()))
+
+        parseResult = morphNameFilter(parseResult)
+        if parseResult[0] == "1":
+            parseResult[0] = None
+            parseResult.reverse()
+            for i, normal in enumerate(parseResult):
+                if normal:
+                    characterWords[i] = normal
+        del parseResult
+
         for item in charactersList:
-            doNotAdd = 0
             itemWords = item.split(' ')
-            # i = 0
-            # j = 0
-            # k = 0
 
-            for iword in itemWords:
-                # iword = morph.parse(iword.lower())[0].normal_form
-                for cword in characterWords:
-                    # cword = morph.parse(cword.lower())[0].normal_form
-                    if cword in iword:
-                        doNotAdd += 1
+            parseResult = []
+            for word in itemWords:
+                parseResult.append(morph.parse(word.lower()))
+
+            parseResult = morphNameFilter(parseResult)
+            if parseResult[0] == "1":
+                parseResult[0] = None
+                parseResult.reverse()
+                for i, normal in enumerate(parseResult):
+                    if normal:
+                        itemWords[i] = normal
+            del parseResult
+
+            loop = enumerate(characterWords) if len(characterWords) < len(itemWords) else enumerate(itemWords)
+            otherLoop = characterWords if len(characterWords) >= len(itemWords) else itemWords
+            k = 0
+            for i, word in loop:
+                while k + min(len(characterWords), len(itemWords)) - 1 < max(len(characterWords), len(itemWords)):
+                    if ((len(word) == 1 and not word == otherLoop[i + k]) or
+                        word not in otherLoop[i + k]) and \
+                            ((len(otherLoop[i + k]) == 1 and not otherLoop[i + k] == word) or
+                             otherLoop[i + k] not in word):
+                        k += 1
+                    else:
                         break
-            if doNotAdd == len(characterWords):
-                break
-            elif doNotAdd == len(itemWords):
-                charactersList[charactersList.index(item)] = characterString
-                doNotAdd = len(charactersList)
-                break
-        if doNotAdd < len(characterWords):
+                else:
+                    break
+            else:
+                if len(itemWords) < len(characterWords):
+                    charactersList[charactersList.index(item)] = characterString
+                return charactersList
+        else:
             charactersList.append(characterString)
+            return charactersList
 
 
-def morphNameFilter(resultsList, wordNumber, case, gender, number, tense):
+def morphNameFilter(resultsList, wordNumber=0, case=0, gender=0, number=0, tense=0):
     findResult = ["0"]
     if wordNumber == len(resultsList):
-        findResult[0] = "1"
+        if case or gender or number or tense:
+            findResult[0] = "1"
         return findResult
 
     for result in resultsList[wordNumber]:
@@ -95,18 +156,36 @@ def morphNameFilter(resultsList, wordNumber, case, gender, number, tense):
 #             i -= 1
 #         i += 1
 
-def properNameFilter(characterString, text, wordsDict, triggeredSymbols, morph, slice=None):
+def properNameFilter(characterString, wordsDict, wordsList, triggeredSymbols, morph, slice=None):
     characterWords = characterString.split(" ")
     for i, word in enumerate(characterWords):
         characterWords[i] = morph.parse(word.lower())[0].normal_form
     if slice:
-        for trigger in triggeredSymbols:
-            if (slice[0] > 0 and trigger in text[slice[0] - 1]) or (slice[0] > 1 and trigger in text[slice[0] - 2]):
-                break
-        else:
-            if wordsDict[characterWords[0]] > 1:
-                return characterString
-        return None
-    else:
-        return None
+        if wordsDict[characterWords[0]][0] > 1:
+            for i, word in enumerate(wordsDict[characterWords[0]]):
+                if i == 0:
+                    continue
+                if not wordsList[word].istitle():
+                    return None
 
+                for trigger in triggeredSymbols:
+                    if word > 0 and trigger in wordsList[word - 1]:
+                        break
+                else:
+                    return characterString
+            else:
+                return None
+        else:
+            return None
+    else:
+        for i, word in enumerate(wordsDict[characterWords[0]]):
+            if i == 0:
+                continue
+            if not wordsList[word].istitle():
+                return None
+            for trigger in triggeredSymbols:
+                if word > 0 and trigger in wordsList[word - 1]:
+                    break
+            else:
+                return characterString
+            return None
