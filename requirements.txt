@@ -2,12 +2,8 @@ matplotlib
 pandas
 ipywidgets
 numpy
-<<<<<<< HEAD
-
-=======
 natasha
 navec
 slovnet
 pymorphy2
 polyglot
->>>>>>> Max/Analysis
