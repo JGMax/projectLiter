@@ -2,4 +2,8 @@ matplotlib
 pandas
 ipywidgets
 numpy
-
+natasha
+navec
+slovnet
+pymorphy2
+polyglot
