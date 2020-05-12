@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import codecs
 
-from polyglot.detect import Detector
+# from polyglot.detect import Detector
 
 from projectLiter.WordAnalyser.formatText import formatText
 
@@ -37,21 +37,21 @@ def open_file():
 def main():
     open_file()
 
-    detector = Detector(text)  # polyglot
-    print(f"Язык текста: {detector.language.name.capitalize()}")
+    # detector = Detector(text)  # polyglot
+    # print(f"Язык текста: {detector.language.name.capitalize()}")
 
-    if detector.language.code == "ru":
-        characters = charactersFinderRus(text, wordsDict, words, morph)
-        print("Найденные персонажи:")
-        for character in characters:
-            print(character)
-        statistic = {}
-        posts = []
-        morphAnalysisRus(words, posts, statistic, morph)
-        print("Найденные части речи:")
-        for post in posts:
-            print(post + ' - ' + str(statistic[post]))
-        # print(words)
+    # if detector.language.code == "ru":
+    characters = charactersFinderRus(text, wordsDict, words, morph)
+    print("Найденные персонажи:")
+    for character in characters:
+        print(character)
+    statistic = {}
+    posts = []
+    morphAnalysisRus(words, posts, statistic, morph)
+    print("Найденные части речи:")
+    for post in posts:
+        print(post + ' - ' + str(statistic[post]))
+    # print(words)
 
 
 if __name__ == '__main__':
