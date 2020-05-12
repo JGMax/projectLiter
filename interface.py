@@ -6,6 +6,8 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 from time import sleep
+#from WordAnalyser.main import main
+from requests import author, namebooks
 languages = ["Пуш", "До", "Лерм", "Куп", "Бл", "Толс","Бу", "Салт", "Пр", "Нек", "Ес", "Кап", "Мо", "Пре", "Со", "Фе"]
 datalst = [31, 41, 59, 26, 53, 58, 97, 96, 36]
 poems = ["Мастер и Маргарита", "Война и мир", "Преступление и наказание"]
@@ -27,7 +29,7 @@ def tabs(name):
     name.append(f2)
     f3 = ttk.Frame(nb)
     name.append(f3)
-    text(f1, help_text)
+    #text(f1, help_text)
 
     nb.add(f1, text='Текст')
     nb.add(f2, text='Гистограмма')
@@ -56,16 +58,16 @@ def hist(f2, data):
 def text(f1, text_message):
     global message
     f1.delete(message)
-    message = f1.create_text(200, 40, fill="#000000", text=text_message)
+    message = f1.create_text(10, 10, anchor=NW, text=text_message, fill="#000000")
 
 
 def cur_select_authors(evn):
     w = evn.widget
-    i,value = 0, ''
+    i, value = 0, ''
     if w.curselection() != ():
         i = int(w.curselection()[0])
         value = w.get(i)
-    if value and value in languages:
+    if value and value in author:
         text(tabs_name[0], biography)
     print_poems(listbox_poems())
 
@@ -87,33 +89,36 @@ def listbox_author():
     vsb.grid(row=2, column=2, sticky='ns')
     authors_listbox.configure(yscrollcommand=vsb.set)
     authors_listbox.bind('<<ListboxSelect>>', cur_select_authors)
-    for language in languages:
-        authors_listbox.insert(END, language)
+    for writer in author:
+        authors_listbox.insert(END, writer)
     authors_listbox.grid(row=2, column=0, columnspan=2, ipadx=3, ipady=2, sticky=N, padx=2, pady=2)
 
 
 def listbox_poems():
     poems_listbox = Listbox(width=40, height=10)
     vsb1 = Scrollbar(orient="vertical", command=poems_listbox.yview)
+    vsb2 = Scrollbar(orient="horizontal", command=poems_listbox.xview)
     vsb1.grid(row=4, column=2, sticky='ns')
+    vsb2.grid(row=5, column=0, columnspan=2, sticky='ew')
     poems_listbox.configure(yscrollcommand=vsb1.set)
+    poems_listbox.configure(xscrollcommand=vsb2.set)
     poems_listbox.bind('<<ListboxSelect>>', cur_select_poems)
     poems_listbox.grid(row=4, column=0, columnspan=2, ipadx=3, ipady=2, sticky=N, padx=2, pady=2)
     return poems_listbox
 
 
 def print_poems(poems_listbox):
-    for row in poems:
+    for row in namebooks:
         poems_listbox.insert(END, row)
 
 
 def labels():
     label1 = Label(text="Авторы", fg="#eee", bg="#333")
-    label1.grid(row=1, column=0, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2,pady=2)
+    label1.grid(row=1, column=0, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     label2 = Label(text="Произведения", fg="#eee", bg="#333")
-    label2.grid(row=3, column=0, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2,pady=2)
+    label2.grid(row=3, column=0, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     label3 = Label(text="Результат исследования", fg="#eee", bg="#333")
-    label3.grid(row=1, column=4, columnspan=4, ipadx=3, ipady=2, sticky=W, padx=2,pady=2)
+    label3.grid(row=1, column=4, columnspan=4, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
 
 
 def bottoms(r):
@@ -139,7 +144,6 @@ def loading(r):
     for ele in r.winfo_children():
         ele.destroy()
 
-
 if __name__ == '__main__':
     root = Tk()
     root.title("Анализ литературных произведений")
@@ -153,4 +157,5 @@ if __name__ == '__main__':
     bottoms(root)
     graph(tabs_name[2])
     hist(tabs_name[1], datalst)
+    #main()
     root.mainloop()
