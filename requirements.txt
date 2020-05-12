@@ -6,4 +6,3 @@ natasha
 navec
 slovnet
 pymorphy2
-polyglot
