@@ -2,7 +2,8 @@ matplotlib
 pandas
 ipywidgets
 numpy
-natasha
+natasha==0.10.0
+yargy==0.12.0
 navec
 slovnet
 pymorphy2
