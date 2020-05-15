@@ -7,3 +7,8 @@ yargy==0.12.0
 navec
 slovnet
 pymorphy2
+sys
+nltk
+chardet
+os
+codecs
