@@ -2,6 +2,7 @@ from urllib import request, parse
 from bs4 import BeautifulSoup
 import sys
 import epub
+import os
 
 def WriteFile(url):
     otvet = request.urlopen(url)
@@ -29,7 +30,8 @@ def FindIndex(name, search):
         if name == search[i]:
             return i
 
-
+def Delete(myFile):
+    os.remove(myFile)
 def SearchAboutAuthor(findname):
 
     header = {}
@@ -77,14 +79,12 @@ def SearchBook(findname, namebooks, soup):
     for name in linksbooks:
         if namebooks[indexbook] == name.find('div', class_ = 'card-heading_title').text:
             url = 'https://www.culture.ru' + name.find('a', {'class': 'card-cover'}).get('href')
-    print(url)
     soup = WriteFile(url)
     books = soup.find_all('a', class_ = 'about-entity_btn button button__primary')
 #soup = WriteFile(url)
     dowlend = books[1].get('href')
-    myFile = 'D:\\'+ str(namebooks[indexbook]) +'.epub'
+    myFile = 'D:\\myprogramms\\literature\\'+ str(namebooks[indexbook]) +'.epub'
     request.urlretrieve(dowlend, myFile)
-
 
     book = epub.open_epub(myFile)
     with open('book.txt', 'w', encoding = 'utf-8') as file:
@@ -113,4 +113,6 @@ def SearchBook(findname, namebooks, soup):
                     file.write('\n')
 
         i += 1
+    book.close()
+    Delete(myFile)
     return 'book.txt'
