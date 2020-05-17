@@ -12,3 +12,7 @@ nltk
 chardet
 os
 codecs
+urllib3
+lxml
+beautifulsoup4
+epub

@@ -1,7 +1,7 @@
 from urllib import request, parse
 from bs4 import BeautifulSoup
 import sys
-import PyPDF2
+
 def WriteFile(url):
     otvet = request.urlopen(url)
     texthtml = otvet.readlines()
@@ -29,7 +29,7 @@ header = {}
 header['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64 ' \
                        'AppleWebKit/537.36 (KHTML, like Gecko) ' \
                        'Chrome/80.0.3987.132 Safari/537.36'
-soup = SearchSomething('query', author[5],"https://www.biography.com/search?", header)
+soup = SearchSomething('query', author[0],"https://www.biography.com/search?", header)
 
 
 profession = soup.find_all('div', class_ = 'm-card--label')
@@ -47,7 +47,7 @@ print(soup.find('dd', {'itemprop': 'name'}).text)
 print('BIRTH DATE:', soup.find('dd', {'itemprop': 'birthDate'}).text)
 print('DEATH DATE:', soup.find('dd', {'itemprop': 'deathDate'}).text)
 
-soup = SearchSomething('query', author[5],"http://www.gutenberg.org/ebooks/search/?", header)
+soup = SearchSomething('query', author[0],"http://www.gutenberg.org/ebooks/search/?", header)
 
 allnamebooks = soup.find_all('span', class_='title')
 print('LIST OF BOOKS')
@@ -63,16 +63,17 @@ url = 'http://www.gutenberg.org' + linksbooks[number + 4].get('href')
 soup = WriteFile(url)
 links = soup.find_all('a', class_= 'link')
 for t in links:
-    if str( t.text) == 'PDF':
+    if 'HTML' in str(t.text):
         url = 'http://www.gutenberg.org' + t.get('href')
-        otvet = request.urlopen(url)
-        textpdf = otvet.readlines()
-        with open('test.pdf', 'wb') as file:
-            for line in textpdf:
-                file.write(line)
-        pl = open('test.pdf', 'rb')
-        plread = PyPDF2.PdfFileReader(pl)
-        getpage37 = plread.getPage(1)
-        text37 = getpage37.extractText()
-        print(text37)
-        break
+        html = request.urlopen(url).read()
+        soup = BeautifulSoup(html, 'lxml')
+
+        for element in soup(["script", "style"]):
+            element.extract()  # rip it out
+
+        text = soup.get_text()
+
+        with open('test.txt', 'w') as file:
+            for line in text:
+                file.write(str(line))
+        f = open('test.txt')
