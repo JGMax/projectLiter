@@ -83,10 +83,11 @@ def SearchBook(findname, namebooks, soup):
     books = soup.find_all('a', class_ = 'about-entity_btn button button__primary')
 #soup = WriteFile(url)
     dowlend = books[1].get('href')
-    myFile = 'D:\\myprogramms\\literature\\'+ str(namebooks[indexbook]) +'.epub'
-    request.urlretrieve(dowlend, myFile)
+    pathfile = os.getcwd()
+    pathfile += '\\' + str(namebooks[indexbook]) +'.epub'
+    request.urlretrieve(dowlend, pathfile)
 
-    book = epub.open_epub(myFile)
+    book = epub.open_epub(pathfile)
     with open('book.txt', 'w', encoding = 'utf-8') as file:
         pass
     i = 1
@@ -114,5 +115,5 @@ def SearchBook(findname, namebooks, soup):
 
         i += 1
     book.close()
-    Delete(myFile)
+    Delete(pathfile)
     return 'book.txt'
