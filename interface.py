@@ -2,17 +2,14 @@ from tkinter import *
 import tkinter.ttk as ttk
 import numpy as np
 import matplotlib
-matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from time import sleep
 import codecs
 import threading
-import concurrent.futures
 import queue
-#from WordAnalyser.main import text, main
-#from requests import author, namebooks
-from requests import SearchAboutAuthor, SearchBook
+from projectLiter.requests import SearchAboutAuthor, SearchBook
+matplotlib.use("TkAgg")
 author = ['Антон Чехов', 'Лев Толстой', 'Иван Тургенев', 'Николай Гоголь', 'Александр Куприн',
           'Михаил Булгаков', 'Максим Горький', 'Виктор Астафьев', 'Александр Солженицын', 'Федор Достоевский']
 characters = ["Пуш", "До", "Лерм", "Куп", "Бл", "Толс","Бу", "Салт", "Пр", "Нек", "Ес", "Кап", "Мо", "Пре", "Со", "Фе"]
@@ -97,15 +94,13 @@ def cur_select_authors(evn):
         i = int(w.curselection()[0])
         value = w.get(i)
     if value and value in author:
-        que = queue.Queue()
+        '''que = queue.Queue()
         print(value)
         t = threading.Thread(target=lambda q, arg1: q.put(SearchAboutAuthor(arg1)), args=(que, value))
         t.start()
         t.join()
-        find = que.get()
-        #func = threading.Thread(target=SearchAboutAuthor, args=(value,))
-        #find = func.start()'''
-        #find = SearchAboutAuthor(value)
+        find = que.get()'''
+        find = SearchAboutAuthor(value)
         print_text(tabs_name[0], find[0])
         print_poems(listbox_poems(), find[1])
 
@@ -118,15 +113,13 @@ def cur_select_poems(evn):
         i = int(wid.curselection()[0])
         value = wid.get(i)
     if value and value not in author:
-        que1 = queue.Queue()
+        '''que1 = queue.Queue()
         t = threading.Thread(target=lambda q, arg1, arg2, arg3: q.put(SearchBook(arg1, arg2, arg3)),
                              args=(que1, value, find[1], find[2]))
         t.start()
         t.join()
-        book = que1.get()
-        #func = threading.Thread(target=SearchBook, args=(value, find[1], find[2]))
-        #book = func.start()'''
-        #book = SearchBook(value, find[1], find[2])
+        book = que1.get()'''
+        book = SearchBook(value, find[1], find[2])
         with codecs.open(book, encoding='utf-8') as file:
             text = file.read()
         print_text(tabs_name[0], text)
