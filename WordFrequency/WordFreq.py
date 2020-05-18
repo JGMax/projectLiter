@@ -1,6 +1,6 @@
 import sys
 import nltk
-from nltk.tokenize import word_tokenize # токенизиурет слова
+#from nltk.tokenize import word_tokenize # токенизиурет слова
 import chardet #определяет кодировку
 import os
 import codecs #содержит кодек BOM_UTF-8
@@ -36,6 +36,3 @@ def word_frequency(words):
 #summary = sorted(w for w in set(words) if len(w) > 6 and freq[w] > 10)
 #summary = freq.keys()
 #print(summary)
-
-
-
