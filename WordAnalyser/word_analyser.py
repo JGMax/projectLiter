@@ -72,9 +72,9 @@ def text_analysis(file_name, language="ru"):
 if __name__ == '__main__':
     results = text_analysis("text.txt", "ru")
 
-    print("Частотность:")
-    for word in results[frequency_key]:
-        print(word)
+    # print("Частотность:")
+    # for word in results[frequency_key]:
+    #     print(word)
     print("Найденные персонажи:")
     for character in results[characters_key]:
         print(character)

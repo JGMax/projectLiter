@@ -157,25 +157,35 @@ def morphNameFilter(resultsList, wordNumber=0, case=0, gender=0, number=0, tense
 #         i += 1
 
 def properNameFilter(characterString, wordsDict, wordsList, triggeredSymbols, morph, slice=None):
+    if "\r" in characterString:
+        characterString = characterString.replace("\r", ' ')
     characterWords = characterString.split(" ")
-    for i, word in enumerate(characterWords):
-        characterWords[i] = morph.parse(word.lower())[0].normal_form
-    if slice:
-        if wordsDict[characterWords[0]][0] > 1:
-            for i, word in enumerate(wordsDict[characterWords[0]]):
-                if i == 0:
-                    continue
-                if not wordsList[word].istitle():
-                    return None
+    
+    characterWords[0] = characterWords[0].lower()
+    if characterWords[0] not in wordsDict:
+        characterWords[0] = morph.parse(characterWords[0])[0].normal_form
 
-                for trigger in triggeredSymbols:
-                    if word > 0 and trigger in wordsList[word - 1]:
-                        break
+    if slice:
+        try:
+            if wordsDict[characterWords[0]][0] > 1:
+                for i, word in enumerate(wordsDict[characterWords[0]]):
+                    if i == 0:
+                        continue
+                    if not wordsList[word].istitle():
+                        return None
+
+                    for trigger in triggeredSymbols:
+                        if word > 0 and trigger in wordsList[word - 1]:
+                            break
+                    else:
+                        return characterString
                 else:
-                    return characterString
+                    return None
             else:
                 return None
-        else:
+        except KeyError:
+            print(characterString)
+            print(characterWords)
             return None
     else:
         for i, word in enumerate(wordsDict[characterWords[0]]):

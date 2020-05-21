@@ -1,9 +1,10 @@
-import sys
+# import sys
 import nltk
-#from nltk.tokenize import word_tokenize # токенизиурет слова
-import chardet #определяет кодировку
-import os
-import codecs #содержит кодек BOM_UTF-8
+from projectLiter.WordAnalyser.config import max_freq_top_size
+# from nltk.tokenize import word_tokenize # токенизиурет слова
+# import chardet #определяет кодировку
+# import os
+# import codecs #содержит кодек BOM_UTF-8
 
 # bytes = min(128, os.path.getsize(sys.argv[1]))
 #
@@ -28,8 +29,9 @@ import codecs #содержит кодек BOM_UTF-8
 
 def word_frequency(words):
     freq = nltk.FreqDist(words)
-    top = freq.most_common(500)
-    abc = list(top[w] for w in range(0, 500) if len(top[w][0]) > 3)
+    top = freq.most_common(max_freq_top_size)
+    max_range = range(0, max_freq_top_size) if max_freq_top_size < len(top) else range(0, len(top))
+    abc = list(top[w] for w in max_range if len(top[w][0]) > 3)
     return abc
     #print(abc)
 
