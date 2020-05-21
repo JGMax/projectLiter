@@ -184,8 +184,6 @@ def properNameFilter(characterString, wordsDict, wordsList, triggeredSymbols, mo
             else:
                 return None
         except KeyError:
-            print(characterString)
-            print(characterWords)
             return None
     else:
         for i, word in enumerate(wordsDict[characterWords[0]]):
