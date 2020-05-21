@@ -34,11 +34,13 @@ result = {frequency_key: [],
           morph_posts_key: [],
           morph_statistic_key: [],
           dict_of_words_key: []}
-end = []
+end = {}
 
 
 def tabs(name):
-    nb = ttk.Notebook(width=470,height=430)
+    h = 450
+    w = 490
+    nb = ttk.Notebook(width=w, height=h)
     nb.grid(row=2, column=4, columnspan=4, rowspan=4, ipadx=3, ipady=2, sticky=N, padx=2,pady=2)
 
     f1 = Canvas(nb)
@@ -46,13 +48,9 @@ def tabs(name):
     f2 = Canvas(nb)
     name.append(f2)
     #create_combobox(f2)
-    #f3 = ttk.Frame(nb)
     f3 = Canvas(nb)
     name.append(f3)
-    vsb1 = Scrollbar(orient="vertical", command=f1.yview)
-    vsb2 = Scrollbar(orient="horizontal", command=f1.xview)
-    vsb1.grid(row=2, column=9, rowspan=6, sticky='ns')
-    vsb2.grid(row=6, column=4, columnspan=4, sticky='ew')
+    create_scroll(f1, h, w)
 
     print_text(f1, help_text, 10, 'help')
     print_text(f2, help_text1, 40, 'help1')
@@ -63,8 +61,19 @@ def tabs(name):
     nb.add(f3, text='Vocabulary')
 
 
-def get_active_text(env):
-    print(env)
+def create_scroll(f, h, w):
+    label1 = Label(f, text=' ', fg="#000000", width=int(w / 7.3))
+    label1.grid(row=12, column=0, columnspan=12, sticky=W)
+    label2 = Label(f, text='', fg="#000000", height=int(h / 14.5))
+    label2.grid(row=0, column=11, rowspan=12, sticky=N)
+    vsb1 = Scrollbar(f, orient="vertical", command=f.yview)
+    vsb2 = Scrollbar(f, orient="horizontal", command=f.xview)
+    vsb1.grid(row=0, column=12, rowspan=11, sticky='ns')
+    vsb2.grid(row=11, column=0, columnspan=12, sticky='ew')
+    f.configure(yscrollcommand=vsb1.set, xscrollcommand=vsb2.set)
+
+
+def get_active_text_vocab(env):
     w = env.widget
     model = w.current()
     active = w.get()
@@ -73,12 +82,24 @@ def get_active_text(env):
     print_vocab(active)
 
 
-def create_combobox(f2, text, values, x, y):
+def get_active_text_char(env):
+    w = env.widget
+    model = w.current()
+    active = w.get()
+    if model < 0:
+        return None
+    print_characters(active)
+
+
+def create_combobox(f2, text, values, x, y, flag):
     combobox = ttk.Combobox(f2, values=values,  exportselection=0)
     label1 = Label(f2, text=text, fg="#000000")
     label1.grid(row=x, column=y, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     combobox.grid(row=x, column=y+2, columnspan=2, ipadx=3, ipady=2, sticky=N, padx=2, pady=2)
-    combobox.bind('<<ComboboxSelected>>', get_active_text)
+    if flag:
+        combobox.bind('<<ComboboxSelected>>', get_active_text_char)
+    else:
+        combobox.bind('<<ComboboxSelected>>', get_active_text_vocab)
     return combobox
 
 
@@ -126,7 +147,7 @@ def cur_select_authors(evn):
         label1 = Label(tabs_name[0], text="Biography", fg="#000000")
         label1.grid(row=0, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
         tabs_name[0].delete('help')
-        print_text(tabs_name[0], find[0], 30, 'biogr')
+        print_text(tabs_name[0], find[0], 50, 'biogr')
         print_poems(listbox_poems(), find[1])
 
 
@@ -147,7 +168,7 @@ def cur_select_poems(evn):
         book = SearchBook(value, find[1], find[2])
         but = Button(tabs_name[0], text='Book', command=print_book)
         but.grid(row=0, column=6, ipadx=3, ipady=2, padx=1, pady=2)
-        analyser(book, 'ru', value)
+        analyser(book, 'ru')
 
 
 def print_book():
@@ -170,8 +191,9 @@ def listbox_author():
     authors_listbox.grid(row=2, column=0, columnspan=2, ipadx=3, ipady=2, sticky=N, padx=2, pady=2)
 
 
-def analyser(book, language, name):
-    global result
+def analyser(book, language):
+    global result, end
+    end.clear()
     res = ''
     ind = 0
     text1 = []
@@ -179,26 +201,31 @@ def analyser(book, language, name):
         for line in file:
             text1.append(str(line))
         print(text1)
-        regular = r'^[0-9IXV\s]{2,4}$'
+        regular = r'^[IXV]{1,6}\s{2}$'
         for i in range(ind, len(text1)):
-            print(type(text1))
-            if re.findall(regular, text1[i]):
-                print(i, len(text1))
+            find_chapter = re.findall(regular, text1[i])
+            if find_chapter:
+                print(i, len(text1), find_chapter)
                 for j in range(i+1, len(text1)):
-                    if not len(text1[j]) <= 7:
-                        res += text1[j]
-                    else:
+                    print(find_chapter)
+                    if re.findall(regular, text1[j]) or j == len(text1)-1:
                         print(res)
-                        with open('book1.txt', 'w', encoding='utf-8') as file:
-                            file.writelines(res)
+                        print(text1[j])
+                        with open('book1.txt', 'w', encoding='utf-8') as file1:
+                            file1.writelines(res)
                         res = ''
                         result = text_analysis('book1.txt', language)
-                        end.append(result)
+                        find_chapter = str(find_chapter[0]).replace(' \n', '')
+                        end[find_chapter] = result
                         print(end)
-                        ind = j + 1
+                        ind = j
                         break
-            elif not re.findall(regular, text1[i]) and i == len(text1)-1:
+                    elif not re.findall(regular, text1[j]):
+                        res += text1[j]
+            elif not find_chapter and i == len(text1)-1 and not end:
+                print('yes')
                 result = text_analysis(book, language)
+                end['0'] = result
     print(end)
 
 
@@ -222,22 +249,24 @@ def print_poems(poems_listbox, books):
 
 def characters():
     tabs_name[1].delete('help1')
-    label1 = Label(tabs_name[1], text="Найденные персонажи:", fg="#000000")
+    label1 = Label(tabs_name[1], text="Найденные\nперсонажи:", fg="#000000")
     label1.grid(row=1, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-    count = len(end)
-    chapters = [f'Глава {i + 1}' for i in range(count)]
-    create_combobox(tabs_name[2], 'Выберите главы', chapters, 1, 1)
+    print(end)
+    chapters = [f'Глава {key}' for key in end.keys()]
+    create_combobox(tabs_name[1], 'Выберите главы', chapters, 1, 1, 1)
 
 
 def print_characters(chapter):
-    chapter = int(chapter.split()[1]) - 1
+    tabs_name[1].delete('charact')
+    chapter = chapter.split()[1]
     answer = ''
+    print(type(end[chapter]), chapter)
     if end[chapter][characters_key]:
         for character in end[chapter][characters_key]:
             answer += str(character)
             answer += '\n'
-        print_text(tabs_name[1], answer, 70, 'charact')
-        create_combobox(tabs_name[1], "Выберите персонажа:", end[chapter][characters_key], 0, 2)
+        print_text(tabs_name[1], answer, 80, 'charact')
+        #create_combobox(tabs_name[1], "Выберите персонажа:", end[chapter][characters_key], 0, 2)
     else:
         print_text(tabs_name[1], 'Not found!', 70, 'not1')
 
@@ -246,13 +275,13 @@ def vocab():
     tabs_name[2].delete('help2')
     label1 = Label(tabs_name[2], text="Найденные части\n речи:", fg="#000000")
     label1.grid(row=1, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-    count = len(end)
-    chapters = [f'Глава {i+1}' for i in range(count)]
-    create_combobox(tabs_name[2], 'Выберите главы', chapters, 1, 1)
+    chapters = [f'Глава {key}' for key in end.keys()]
+    create_combobox(tabs_name[2], 'Выберите главы', chapters, 1, 1, 0)
 
 
 def print_vocab(chapter):
-    chapter = int(chapter.split()[1])-1
+    tabs_name[2].delete('vocab')
+    chapter = chapter.split()[1]
     array1, array2 = [], []
     answer = ''
     ind = 0
@@ -315,5 +344,4 @@ if __name__ == '__main__':
     tabs(tabs_name)
     bottoms(tabs_name)
     #create_combobox(tabs_name[1])
-    #main()
     root.mainloop()
