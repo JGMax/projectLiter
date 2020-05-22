@@ -58,7 +58,7 @@ def text_analysis(file_name, language="ru"):
         dict_for_next_analysis = morphAnalysisRus(words, posts, statistic, morph)
     elif language == "en":
         top_of_words = word_frequency(words)
-    del mor
+    #del mor
 
     resultDict[frequency_key] = top_of_words
     resultDict[characters_key] = characters
