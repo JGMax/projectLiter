@@ -183,21 +183,18 @@ def SearchBookEnglish(findname, namebooks, soup):
     linksbooks = soup.find_all('a', class_='link')
     indexbook = FindIndex(findname, namebooks)
     url = 'http://www.gutenberg.org' + linksbooks[indexbook + 4].get('href')
-    print(url)
     soup = WriteFile(url)
     links = soup.find_all('a', class_= 'link')
-    for t in links:
-        if 'HTML' in str(t.text):
-            url = 'http://www.gutenberg.org' + t.get('href')
-            html = request.urlopen(url).read()
-            soup = BeautifulSoup(html, 'lxml')
+    for link in links:
+        if 'More' in str(link.text):
+            url = 'http://www.gutenberg.org' + link.get('href')
+            soup = WriteFile(url)
+            links = soup.find_all('a')
+            for text in links:
+                if '.txt' in str(text.text):
+                    dowlend = url + text.get('href')
+                    pathfile = os.getcwd()
+                    pathfile += '\\' + 'bookenglish.txt'
+                    request.urlretrieve(dowlend, pathfile)
 
-            for element in soup(["script", "style"]):
-                element.extract()  # rip it out
-
-            text = soup.get_text()
-
-            with open('booke.txt', 'w', encoding = 'utf-8') as file:
-                for line in text:
-                    file.write(str(line))
-    return 'booke.txt'
+    return 'bookenglish.txt'
