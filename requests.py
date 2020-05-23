@@ -4,6 +4,8 @@ import sys
 import epub
 import os
 
+author = ['Антон Чехов', 'Лев Толстой', 'Иван Тургенев', 'Николай Гоголь', 'Александр Куприн',
+          'Николай Лесков', 'Александр Островский', 'Александр Пушкин', 'Михаил Лермонтов', 'Федор Достоевский']
 def WriteFile(url):
     otvet = request.urlopen(url)
     texthtml = otvet.readlines()
@@ -37,14 +39,13 @@ def SearchAboutAuthor(findname):
     header['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64 ' \
                            'AppleWebKit/537.36 (KHTML, like Gecko) ' \
                            'Chrome/80.0.3987.132 Safari/537.36'
-    author = ['Антон Чехов', 'Лев Толстой', 'Иван Тургенев', 'Николай Гоголь', 'Александр Куприн',
-          'Николай Лесков', 'Александр Островский', 'Александр Пушкин', 'Михаил Лермонтов', 'Федор Достоевский']
-
+    global author
     indexauthor = FindIndex(findname, author)
     soup = SearchSomething('query', author[indexauthor],"https://www.culture.ru/literature/persons?", header)
     linksauthor = soup.find_all('div', class_ = 'entity-card-v2_body')
     nameauthor = soup.find_all('div', class_ = 'card-heading_title')
     i = 0
+
     for name in nameauthor:
         if str(name.text) == author[indexauthor]:
             url = 'https://www.culture.ru' + linksauthor[i].find('a',{'class':'card-cover'}).get('href')
@@ -52,13 +53,24 @@ def SearchAboutAuthor(findname):
         i += 1
 
     soup = WriteFile(url)
-
-
+    fullbiografy = soup.find_all('p')
     information = soup.find_all('div', class_ = 'attributes_block')
     biografy = author[indexauthor] + '\n' + 'Годы жизни: ' + information[0].find('div', {'class': 'attributes_value'}).text + '\n'
     biografy += 'Страна рождения: ' + information[1].find('div', {'class': 'attributes_value'}).text + '\n'
-    biografy += 'Сфера деятельности: ' + information[2].find('div', {'class': 'attributes_value'}).text + '\n'
+    biografy += 'Сфера деятельности: ' + information[2].find('div', {'class': 'attributes_value'}).text + '\n\n'
 
+    for line in fullbiografy[:-7]:
+        count = 1
+        for element in line.text.split(' '):
+            biografy += element
+            if count % 11 != 0:
+                biografy += ' '
+            else:
+                biografy += '\n'
+                count = 1
+            count += 1
+        biografy += '\n'
+    print(biografy)
     Transition = soup.find('a', class_ = 'more_btn button button button__neutral button__true')
     url = 'https://www.culture.ru' + Transition.get('href')
 
@@ -91,6 +103,7 @@ def SearchBook(findname, namebooks, soup):
     with open('book.txt', 'w', encoding = 'utf-8') as file:
         pass
     i = 1
+    index = 1
     for item in book.opf.manifest.values():
         data = book.read_item(item)
         #if :
@@ -108,6 +121,8 @@ def SearchBook(findname, namebooks, soup):
 
             text = soup.get_text()
             with open('book.txt', 'a', encoding = 'utf-8') as file:
+                file.write('_' + str(index) + '_')
+                index += 1
                 count = 1
                 for element in text.split(' '):
                     file.write(element)
