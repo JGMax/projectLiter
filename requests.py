@@ -6,6 +6,7 @@ import os
 
 author = ['Антон Чехов', 'Лев Толстой', 'Иван Тургенев', 'Николай Гоголь', 'Александр Куприн',
           'Николай Лесков', 'Александр Островский', 'Александр Пушкин', 'Михаил Лермонтов', 'Федор Достоевский']
+authorenglish = ['Jane Austen', 'Charles Dickens', 'Agatha Christie', 'Thomas Hardy', 'Graham Green', 'William Shakespeare']
 def WriteFile(url):
     otvet = request.urlopen(url)
     texthtml = otvet.readlines()
@@ -70,7 +71,6 @@ def SearchAboutAuthor(findname):
                 count = 1
             count += 1
         biografy += '\n'
-    print(biografy)
     Transition = soup.find('a', class_ = 'more_btn button button button__neutral button__true')
     url = 'https://www.culture.ru' + Transition.get('href')
 
@@ -121,7 +121,7 @@ def SearchBook(findname, namebooks, soup):
 
             text = soup.get_text()
             with open('book.txt', 'a', encoding = 'utf-8') as file:
-                file.write('_' + str(index) + '_')
+                file.write('_' + str(index) + '_\n')
                 index += 1
                 count = 1
                 for element in text.split(' '):
@@ -141,3 +141,63 @@ def SearchBook(findname, namebooks, soup):
     book.close()
     Delete(pathfile)
     return 'book.txt'
+
+def SearchAboutAuthorEnglish(findname):
+
+    global authorenglish
+    indexauthor = FindIndex(findname, authorenglish)
+    header = {}
+    header['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64 ' \
+                       'AppleWebKit/537.36 (KHTML, like Gecko) ' \
+                       'Chrome/80.0.3987.132 Safari/537.36'
+    soup = SearchSomething('query', authorenglish[indexauthor],"https://www.biography.com/search?", header)
+
+
+    profession = soup.find_all('div', class_ = 'm-card--label')
+    nameauthor = soup.find_all('div', class_ = 'l-grid--item')
+    i = 0
+    for t in profession:
+        a = t.find('a').get('href')
+        if str(a) == '/writer':
+            url = 'https://www.biography.com' + nameauthor[i].find('phoenix-super-link').get('href')
+            break
+        i += 1
+
+    soup = WriteFile(url)
+    biografy = soup.find('dd', {'itemprop': 'name'}).text + '\n'
+    biografy += 'BIRTH DATE: ' + soup.find('dd', {'itemprop': 'birthDate'}).text + '\n'
+    biografy += 'DEATH DATE: ' + soup.find('dd', {'itemprop': 'deathDate'}).text + '\n'
+   # print(biografy)
+    soup = SearchSomething('query', authorenglish[indexauthor],"http://www.gutenberg.org/ebooks/search/?", header)
+
+    allnamebooks = soup.find_all('span', class_='title')
+
+    namebooks = []
+    for i in range(len(allnamebooks)):
+        if i > 3:
+            namebooks.append(str(allnamebooks[i].text).replace('\\', ''))
+    return (biografy, namebooks, soup,)
+
+def SearchBookEnglish(findname, namebooks, soup):
+
+    linksbooks = soup.find_all('a', class_='link')
+    indexbook = FindIndex(findname, namebooks)
+    url = 'http://www.gutenberg.org' + linksbooks[indexbook + 4].get('href')
+    print(url)
+    soup = WriteFile(url)
+    links = soup.find_all('a', class_= 'link')
+    for t in links:
+        if 'HTML' in str(t.text):
+            url = 'http://www.gutenberg.org' + t.get('href')
+            html = request.urlopen(url).read()
+            soup = BeautifulSoup(html, 'lxml')
+
+            for element in soup(["script", "style"]):
+                element.extract()  # rip it out
+
+            text = soup.get_text()
+
+            with open('booke.txt', 'w', encoding = 'utf-8') as file:
+                for line in text:
+                    file.write(str(line))
+    return 'booke.txt'
