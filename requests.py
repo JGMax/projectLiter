@@ -6,7 +6,6 @@ import os
 
 def WriteFile(url):
     otvet = request.urlopen(url)
-    #otvet.encoding = 'utf-8'
     texthtml = otvet.readlines()
     with open('test.html', 'wb') as file:
         for line in texthtml:
@@ -39,10 +38,10 @@ def SearchAboutAuthor(findname):
                            'AppleWebKit/537.36 (KHTML, like Gecko) ' \
                            'Chrome/80.0.3987.132 Safari/537.36'
     author = ['Антон Чехов', 'Лев Толстой', 'Иван Тургенев', 'Николай Гоголь', 'Александр Куприн',
-          'Михаил Булгаков', 'Максим Горький', 'Виктор Астафьев', 'Александр Солженицын', 'Федор Достоевский']
+          'Николай Лесков', 'Александр Островский', 'Александр Пушкин', 'Михаил Лермонтов', 'Федор Достоевский']
 
     indexauthor = FindIndex(findname, author)
-    soup = SearchSomething('query', author[indexauthor],"https://www.culture.ru/literature/persons/writer?", header)
+    soup = SearchSomething('query', author[indexauthor],"https://www.culture.ru/literature/persons?", header)
     linksauthor = soup.find_all('div', class_ = 'entity-card-v2_body')
     nameauthor = soup.find_all('div', class_ = 'card-heading_title')
     i = 0
@@ -65,12 +64,13 @@ def SearchAboutAuthor(findname):
 
     soup = WriteFile(url)
 
-    allnamebooks = soup.find_all('div', class_ = 'card-heading_head')
+    allnamebooks = soup.find_all('div', class_ = 'card-heading_inner')
     namebooks = []
     for name in allnamebooks:
-        if author[indexauthor] == name.find('div', class_ = 'card-heading_subtitle').text:
+        if author[indexauthor] == name.find('div', class_ = 'card-heading_subtitle').text and \
+                name.find('div', class_ = 'card-heading_list').text != 'Поэзия':
             namebooks.append(name.find('div', class_ = 'card-heading_title').text)
-    return (biografy, namebooks, soup, )
+    return (biografy, namebooks, soup,)
 
 def SearchBook(findname, namebooks, soup):
 
@@ -93,25 +93,34 @@ def SearchBook(findname, namebooks, soup):
     i = 1
     for item in book.opf.manifest.values():
         data = book.read_item(item)
-        if i >= 3 and len(book.opf.manifest.values()) - 1 > i:
-
+        #if :
+        if i >= 3 and len(book.opf.manifest.values()) - 2 > i and '?xml' in str(data):
             with open('test.html', 'wb') as file:
+                data = data.decode('utf-8').replace('<br/>', ' \n')
+                data = data.replace('</p>', ' \n</p>')
+                data = data.replace('</title>', ' \n</title>')
+                data = data.encode('utf-8')
                 file.write(data)
             with open('test.html', 'rb') as file:
                 soup = BeautifulSoup(file, 'lxml')
-            books = soup.find_all('p')
+            for element in soup(["script", "style"]):
+                element.extract()
+
+            text = soup.get_text()
             with open('book.txt', 'a', encoding = 'utf-8') as file:
-                for line in books:
-                    count = 0
-                    for element in line.text.split(" "):
-                        count += 1
-                        file.write(element)
-                        if count % 15 != 0:
-                            file.write(' ')
-                        else:
-                            file.write('\n')
-                            count = 0
-                    file.write('\n')
+                count = 1
+                for element in text.split(' '):
+                    file.write(element)
+                    if '\n' in element:
+                        count = 1
+                    if count % 11 != 0:
+                        file.write(' ')
+                    else:
+                        file.write('\n')
+                        count = 1
+                    count += 1
+                file.write('\n')
+
 
         i += 1
     book.close()
