@@ -15,17 +15,21 @@ from projectLiter.WordAnalyser.config import morph
 from projectLiter.WordAnalyser.characterFinder import charactersFinderRus
 from projectLiter.WordAnalyser.morphAnalysis import morphAnalysisRus
 
-from projectLiter.WordFrequency.WordFreq import word_frequency
+from projectLiter.WordAnalyser.WordFreq import word_frequency
 
 from projectLiter.WordAnalyser.results_keys import morph_statistic_key
 from projectLiter.WordAnalyser.results_keys import morph_posts_key
 from projectLiter.WordAnalyser.results_keys import characters_key
 from projectLiter.WordAnalyser.results_keys import frequency_key
 from projectLiter.WordAnalyser.results_keys import dict_of_words_key
+from projectLiter.WordAnalyser.results_keys import sentimental_key
+from projectLiter.WordAnalyser.results_keys import adjective_key
+from projectLiter.WordAnalyser.results_keys import adverb_key
+from projectLiter.WordAnalyser.results_keys import positive_key
+from projectLiter.WordAnalyser.results_keys import negative_key
 
-# import nltk
+from projectLiter.WordAnalyser.top_sentimental_words import load_sentimental_words
 
-# nltk.download('averaged_perceptron_tagger')
 text = ""
 words = []
 wordsDict = {}
@@ -45,7 +49,7 @@ def open_file(file_name):
 
 
 def text_analysis(file_name, language="ru"):
-    global mor, top_of_words, characters, posts, statistic, dict_for_next_analysis
+    global mor, top_of_words, characters, posts, statistic, dict_for_next_analysis, adj_sent, adv_sent
     resultDict = {}
     open_file(file_name)
 
@@ -56,10 +60,14 @@ def text_analysis(file_name, language="ru"):
         statistic = {}
         posts = []
         dict_for_next_analysis = morphAnalysisRus(words, posts, statistic, morph)
+        adj_sent = load_sentimental_words(dict_for_next_analysis['ADJF'])
+        adv_sent = load_sentimental_words(dict_for_next_analysis['ADVB'])
     elif language == "en":
         top_of_words = word_frequency(words)
-    #del mor
 
+    resultDict[sentimental_key] = {}
+    resultDict[sentimental_key][adjective_key] = adj_sent
+    resultDict[sentimental_key][adverb_key] = adv_sent
     resultDict[frequency_key] = top_of_words
     resultDict[characters_key] = characters
     resultDict[morph_posts_key] = posts
@@ -81,3 +89,15 @@ if __name__ == '__main__':
     print("Найденные части речи:")
     for post in results[morph_posts_key]:
         print(post + ' - ' + str(results[morph_statistic_key][post]))
+
+    print("Эмоциональная окраска прилагательных:")
+    for word in results[sentimental_key][adjective_key][positive_key]:
+        print(f"{word} is {positive_key}")
+    for word in results[sentimental_key][adjective_key][negative_key]:
+        print(f"{word} is {negative_key}")
+
+    print("Эмоциональная окраска наречий:")
+    for word in results[sentimental_key][adverb_key][positive_key]:
+        print(f"{word} is {positive_key}")
+    for word in results[sentimental_key][adverb_key][negative_key]:
+        print(f"{word} is {negative_key}")

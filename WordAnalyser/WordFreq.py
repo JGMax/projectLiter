@@ -30,8 +30,7 @@ from projectLiter.WordAnalyser.config import max_freq_top_size
 def word_frequency(words):
     freq = nltk.FreqDist(words)
     top = freq.most_common(max_freq_top_size)
-    max_range = range(0, max_freq_top_size) if max_freq_top_size < len(top) else range(0, len(top))
-    abc = list(top[w] for w in max_range if len(top[w][0]) > 3)
+    abc = list(top[w] for w in range(0, len(top)) if len(top[w][0]) > 3)
     return abc
     #print(abc)
 
