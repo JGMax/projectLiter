@@ -1,5 +1,5 @@
-from from projectLiter.WordAnalyser.word_analyser import text_analysis
-from from projectLiter.WordAnalyser.results_keys import dict_of_words_key
+from projectLiter.WordAnalyser.word_analyser import text_analysis
+from projectLiter.WordAnalyser.results_keys import dict_of_words_key
 from projectLiter.WordAnalyser.results_keys import morph_posts_key
 from sentimental import Sentimental
 from projectLiter.WordAnalyser.top_sentimental_words import load_sentimental_sentimental_words
