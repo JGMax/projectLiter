@@ -33,7 +33,6 @@ from projectLiter.WordAnalyser.top_sentimental_words import load_sentimental_wor
 text = ""
 words = []
 wordsDict = {}
-mor = morph
 
 
 def open_file(file_name):
@@ -48,12 +47,19 @@ def open_file(file_name):
         f.close()
 
 
-def text_analysis(file_name, language="ru"):
-    global mor, top_of_words, characters, posts, statistic, dict_for_next_analysis, adj_sent, adv_sent
+def text_analysis(file_name, language="ru"):  # def text_analysis(text, language="ru"):
+    global top_of_words, characters, posts, statistic, dict_for_next_analysis, adj_sent, adv_sent, words, wordsDict
     resultDict = {}
-    open_file(file_name)
+    open_file(file_name)  # Закомментровать, если аргумент это текст
+
     if len(text) == 0:
         return None
+
+    # print("Подготовка текста...")
+    # words = formatText(text, removeSymbols, triggerSymbols).split(' ')
+    # words = [item for item in words if item]
+    # wordsDict = wordsCounterDict(words, morph)
+    # print("Анализ...")
 
     top_of_words = word_frequency(words)
 
