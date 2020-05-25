@@ -16,3 +16,4 @@ urllib3
 lxml
 beautifulsoup4
 epub
+git+https://github.com/text-machine-lab/sentimental.git
