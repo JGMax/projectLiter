@@ -5,7 +5,6 @@ import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from time import sleep
-from numba import jit
 import codecs
 import re
 from projectLiter.WordAnalyser.results_keys import morph_statistic_key, morph_posts_key, \
@@ -13,10 +12,11 @@ from projectLiter.WordAnalyser.results_keys import morph_statistic_key, morph_po
 import threading
 import queue
 from projectLiter.WordAnalyser.word_analyser import text_analysis
-from projectLiter.requests import SearchAboutAuthor, SearchBook
+from projectLiter.requests import SearchAboutAuthor, SearchBook, author, authorenglish, SearchAboutAuthorEnglish,\
+    SearchBookEnglish
 matplotlib.use("TkAgg")
-author = ['Антон Чехов', 'Лев Толстой', 'Иван Тургенев', 'Николай Гоголь', 'Александр Куприн',
-          'Михаил Булгаков', 'Максим Горький', 'Виктор Астафьев', 'Александр Солженицын', 'Федор Достоевский']
+#author = ['Антон Чехов', 'Лев Толстой', 'Иван Тургенев', 'Николай Гоголь', 'Александр Куприн',
+      #    'Михаил Булгаков', 'Максим Горький', 'Виктор Астафьев', 'Александр Солженицын', 'Федор Достоевский']
 datalst = [31, 41, 59, 26, 53, 58, 97, 96, 36]
 help_text = "Welcome to the literary analysis application.\n" \
             "Here you can see the writer's biography, find his poems, and also analyze:\n" \
@@ -39,6 +39,10 @@ end = {}
 histogram = 0
 label1 = 0
 label_biogr = 0
+all_author = author+authorenglish
+lang = 0
+poem = 0
+but = 0
 
 
 def tabs(name):
@@ -151,57 +155,85 @@ def print_text(f, text_message, y, tag):
 
 
 def cur_select_authors(evn):
-    global find, label_biogr
+    global find, label_biogr, lang, poem
     w = evn.widget
     i, value = 0, ''
+    print('hello')
     if w.curselection() != ():
         i = int(w.curselection()[0])
         value = w.get(i)
     if value and value in author:
-        '''que = queue.Queue()
+        que = queue.Queue()
         print(value)
-        t = threading.Thread(target=lambda q, arg1: q.put(SearchAboutAuthor(arg1)), args=(que, value))
+        t = threading.Thread(target=lambda q, arg1: q.put(SearchAboutAuthor(arg1)), args=(que, value), daemon=True)
         t.start()
         t.join()
-        find = que.get()'''
-        find = SearchAboutAuthor(value)
-        label_biogr = Label(tabs_name[0], text="Biography", fg="#000000")
-        label_biogr.grid(row=0, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-        tabs_name[0].delete('help')
-        print_text(tabs_name[0], find[0], 30, 'biogr')
-        print_poems(listbox_poems(), find[1])
+        find = que.get()
+        #find = SearchAboutAuthor(value)
+        lang = 'ru'
+    elif value and value in authorenglish:
+        print('h')
+        que = queue.Queue()
+        print(value)
+        t = threading.Thread(target=lambda q, arg1: q.put(SearchAboutAuthorEnglish(arg1)), args=(que, value),
+                             daemon=True)
+        t.start()
+        t.join()
+        find = que.get()
+        #find = SearchAboutAuthorEnglish(value)
+        lang = 'eng'
+        print('yes')
+    if poem != 0:
+        poem.grid_forget()
+    label_biogr = Label(tabs_name[0], text="Biography", fg="#000000")
+    label_biogr.grid(row=0, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
+    tabs_name[0].delete('help')
+    print_text(tabs_name[0], find[0], 30, 'biogr')
+    print_poems(listbox_poems(), find[1])
 
 
 def info(text):
+    global root
     label0 = Label(root, text=text, fg="#eee", bg="#333")
     label0.grid(row=7, column=0, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
 
 
+
 def cur_select_poems(evn):
-    global tabs_name, book, root
-    value = "Analyze..."
-    t = threading.Thread(target=info, args=(value,))
-    t.start()
+    global tabs_name, book, root, lang, but, poem
+    #info("Analyze...")
     wid = evn.widget
     i, value = 0, ''
     if wid.curselection() != ():
         i = int(wid.curselection()[0])
         value = wid.get(i)
-    if value and value not in author:
-        '''que1 = queue.Queue()
-        t = threading.Thread(target=lambda q, arg1, arg2, arg3: q.put(SearchBook(arg1, arg2, arg3)),
-                             args=(que1, value, find[1], find[2]))
-        t.start()
-        t.join()
-        book = que1.get()'''
-        book = SearchBook(value, find[1], find[2])
+    if value and value not in all_author:
+        if lang == 'ru':
+            ''''que1 = queue.Queue()
+            search = ThreadPool(1)
+            search.map(lambda q, arg1, arg2, arg3: q.put(SearchBook(arg1, arg2, arg3)), args=(que1 value, find[1], find[2]))
+            procs.append(search)
+            search.start()
+            book = que1.get()'''
+            book = SearchBook(value, find[1], find[2])
+        elif lang == 'eng':
+            book = SearchBookEnglish(value, find[1], find[2])
+            '''que1 = queue.Queue()
+            search = threading.Thread(target=lambda q, arg1, arg2, arg3: q.put(SearchBookEnglish(arg1, arg2, arg3)),
+                                 args=(que1, value, find[1], find[2]), daemon=True)
+            procs.append(search)
+            search.start()
+            book = que1.get()'''
+        if poem:
+            poem.grid_forget()
         but = Button(tabs_name[0], text='Book', command=print_book)
         but.grid(row=0, column=6, ipadx=3, ipady=2, padx=1, pady=2)
-        analyser(book, 'ru')
+        analyser(book, lang)
 
 
 def print_book():
-    global label_biogr
+    global label_biogr, poem, but
+    but.grid_forget()
     label_biogr.grid_forget()
     #label_biogr = Label(tabs_name[0], text="   Text    ", fg="#000000", width=10)
     #label_biogr.grid(row=0, column=0, columnspan=5, ipadx=3, ipady=2, sticky=S, padx=2, pady=2)
@@ -220,7 +252,7 @@ def listbox_author():
     vsb.grid(row=2, column=2, sticky='ns')
     authors_listbox.configure(yscrollcommand=vsb.set)
     authors_listbox.bind('<<ListboxSelect>>', cur_select_authors)
-    for writer in author:
+    for writer in all_author:
         authors_listbox.insert(END, writer)
     authors_listbox.grid(row=2, column=0, columnspan=2, ipadx=3, ipady=2, sticky=N, padx=2, pady=2)
 
@@ -235,7 +267,8 @@ def analyser(book, language):
         for line in file:
             text1.append(str(line))
         print(text1)
-        regular = r'^[IXV]{1,6}\s{2}$'
+        regular = r'^Глава\s[0-9]{1,4}\s{0,2}|^[IVX]{1,7}\s{0,2}|Явление\s[а-я]{3,20}\s{0,2}|' \
+                  r'^ДЕЙСТВИЕ\s[а-яА-Я]{3,20}\s{0,2}'
         for i in range(ind, len(text1)):
             find_chapter = re.findall(regular, text1[i])
             if find_chapter:
@@ -250,6 +283,7 @@ def analyser(book, language):
                         res = ''
                         result = text_analysis('book1.txt', language)
                         find_chapter = str(find_chapter[0]).replace(' \n', '')
+                        print(find_chapter)
                         end[find_chapter] = result
                         print(end)
                         ind = j
@@ -259,7 +293,7 @@ def analyser(book, language):
             elif not find_chapter and i == len(text1)-1 and not end:
                 print('yes')
                 result = text_analysis(book, language)
-                end['0'] = result
+                end['Полный текст'] = result
     print(end)
 
 
@@ -286,13 +320,12 @@ def characters():
     label2 = Label(tabs_name[1], text="Найденные\nперсонажи:", fg="#000000")
     label2.grid(row=1, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     print(end)
-    chapters = [f'Глава {key}' for key in end.keys()]
+    chapters = [f'{key}' for key in end.keys()]
     create_combobox(tabs_name[1], 'Выберите главы', chapters, 1, 1, 1)
 
 
 def print_characters(chapter):
     tabs_name[1].delete('charact')
-    chapter = chapter.split()[1]
     answer = ''
     print(type(end[chapter]), chapter)
     if end[chapter][characters_key]:
@@ -311,7 +344,7 @@ def vocab():
     tabs_name[2].delete('help2')
     label1 = Label(tabs_name[2], text="Найденные части\n речи:", fg="#000000")
     label1.grid(row=1, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-    chapters = [f'Глава {key}' for key in end.keys()]
+    chapters = [f'{key}' for key in end.keys()]
     create_combobox(tabs_name[2], 'Выберите главы', chapters, 1, 1, 0)
 
 
@@ -323,13 +356,13 @@ def top():
     hist(tabs_name[2], [], [], 1, 1, 0)
     label1 = Label(tabs_name[2], text="TOP слов:", fg="#000000")
     label1.grid(row=1, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-    chapters = [f'Глава {key}' for key in end.keys()]
+    chapters = [f'{key}' for key in end.keys()]
     create_combobox(tabs_name[2], 'Выберите главы', chapters, 1, 1, 2)
 
 
 def print_vocab(chapter):
     tabs_name[2].delete('vocab')
-    chapter = chapter.split()[1]
+    #chapter = chapter.split()[1]
     array1, array2 = [], []
     answer = ''
     ind = 0
@@ -349,7 +382,7 @@ def print_vocab(chapter):
 
 
 def print_top(chapter):
-    chapter = chapter.split()[1]
+    #chapter = chapter.split()[1]
     answer = ''
     ind = 0
     if end[chapter][frequency_key]:
@@ -375,11 +408,11 @@ def labels():
 
 
 def bottoms(r):
-    but = Button(r[1], text='Characters', command=characters)
+    but0 = Button(r[1], text='Characters', command=characters)
     but1 = Button(r[2], text='Vocabulary', command=vocab)
     but2 = Button(r[2], text='TOP of words', command=top)
     but3 = Button(r[2], text='Очистить')
-    but.grid(row=0, column=0, ipadx=3, ipady=2, padx=1, pady=2)
+    but0.grid(row=0, column=0, ipadx=3, ipady=2, padx=1, pady=2)
     but1.grid(row=0, column=0, ipadx=10, ipady=2, padx=1, pady=2)
     but2.grid(row=0, column=1, ipadx=10, ipady=2,  padx=1, pady=2)
     but3.grid(row=0, column=2, ipadx=10, ipady=2, padx=1, pady=2)
