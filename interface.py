@@ -12,6 +12,7 @@ from projectLiter.WordAnalyser.results_keys import morph_statistic_key, morph_po
     positive_key
 import threading
 import queue
+from multiprocessing import Process
 from projectLiter.WordAnalyser.word_analyser import text_analysis
 from projectLiter.requests import SearchAboutAuthor, SearchBook, author, authorenglish, SearchAboutAuthorEnglish,\
     SearchBookEnglish
@@ -19,15 +20,15 @@ matplotlib.use("TkAgg")
 #author = ['Антон Чехов', 'Лев Толстой', 'Иван Тургенев', 'Николай Гоголь', 'Александр Куприн',
       #    'Михаил Булгаков', 'Максим Горький', 'Виктор Астафьев', 'Александр Солженицын', 'Федор Достоевский']
 datalst = [31, 41, 59, 26, 53, 58, 97, 96, 36]
-help_text = "Welcome to the literary analysis application.\n" \
-            "Here you can see the writer's biography, find his poems, and also analyze:\n" \
+help_text = "\t-=-=Welcome to the classic literature analysis application=-=-\n\n" \
+            "Here you can see the writer's biography, find his poems, and also analysis:\n" \
             "find characters, top of the most popular words, and also a dictionary of vocabulary.\n" \
-            "First, you must select the author’s name from the top list and select a work \n" \
+            "First, you must select the author’s name from the top list and select a literature \n" \
             "from the second list."
-help_text1 = 'Here you can find out the main characters of the work, as well as see the frequency\n' \
+help_text1 = 'Here you can find out the main characters of the literature, as well as see the frequency\n' \
              'of their occurrence in each chapter.'
-help_text2 = 'Here you can see the amount of each part of speech in a work, and also see the top of\n' \
-             'the most popular words in a work'
+help_text2 = 'Here you can see the amount of each vocabulary in a literature, also see the top of\n' \
+             'the most popular words in a work and list of the positive and \nnegative adverbs and adjectives.'
 message = ''
 find = ()
 book = ''
@@ -61,14 +62,14 @@ def tabs(name):
     h = 450
     w = 490
     nb = ttk.Notebook(width=w, height=h)
-    nb.grid(row=2, column=4, columnspan=4, rowspan=4, ipadx=3, ipady=2, sticky=N, padx=2,pady=2)
+    nb.grid(row=2, column=4, columnspan=4, rowspan=4, ipadx=3, ipady=2, sticky=N, padx=2, pady=2)
 
-    f1 = Canvas(nb)
+    f1 = Canvas(nb, background='#F5F5F5')
     name.append(f1)
-    f2 = Canvas(nb)
+    f2 = Canvas(nb, background='#F5F5F5')
     name.append(f2)
     #create_combobox(f2)
-    f3 = Canvas(nb)
+    f3 = Canvas(nb, background='#F5F5F5')
     name.append(f3)
     #create_scroll(f1, h, w)
     #create_scroll(f3, h, w)
@@ -117,7 +118,7 @@ def create_combobox(f2, text, values, x, y):
     if label:
         label.grid_forget()
     combobox = ttk.Combobox(f2, values=values,  exportselection=0)
-    label = Label(f2, text=text, fg="#000000")
+    label = Label(f2, text=text, fg="#000000", bg='#F5F5F5')
     label.grid(row=x, column=y, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     if flag == 1:
         combobox.grid(row=x, column=y+2, columnspan=2)
@@ -139,7 +140,7 @@ def hist(f2,  array1, array2, x, y, flag):
     global histogram
     ff = Figure(figsize=(3, 3), dpi=100)
     xx = ff.add_subplot(111)
-    ind = np.arange(len(array2))
+    ind = [i+1 for i in range(len(array2))]
     xx.bar(ind, array2, 0.8, color="#DC143C")
     canvas = FigureCanvasTkAgg(ff, master=f2)
     canvas.draw()
@@ -168,8 +169,9 @@ def cur_select_authors(evn):
     if value and value in author:
         que = queue.Queue()
         print(value)
-        t = threading.Thread(target=lambda q, arg1: q.put(SearchAboutAuthor(arg1)), args=(que, value), daemon=True)
+        t = threading.Thread(target=lambda q, arg1: q.put(SearchAboutAuthor(arg1)), args=(que, value, ))
         t.start()
+        print('yes')
         t.join()
         find = que.get()
         #find = SearchAboutAuthor(value)
@@ -197,7 +199,7 @@ def cur_select_authors(evn):
 
 def info(text):
     global root
-    label0 = Label(root, text=text, fg="#eee", bg="#333")
+    label0 = Label(text=text, fg="#eee", bg="#333")
     label0.grid(row=7, column=0, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
 
 
@@ -252,8 +254,8 @@ def print_book():
 
 
 def listbox_author():
-    authors_listbox = Listbox(width=40, height=15, selectmode=SINGLE, exportselection=0)
-    vsb = Scrollbar(orient="vertical", command=authors_listbox.yview)
+    authors_listbox = Listbox(width=40, height=15, selectmode=SINGLE, exportselection=0, bg='#F5F5F5')
+    vsb = Scrollbar(orient="vertical", bg='#F5F5F5', command=authors_listbox.yview)
     vsb.grid(row=2, column=2, sticky='ns')
     authors_listbox.configure(yscrollcommand=vsb.set)
     authors_listbox.bind('<<ListboxSelect>>', cur_select_authors)
@@ -283,10 +285,8 @@ def analyser(book, language):
                     if re.findall(regular, text1[j]) or j == len(text1)-1:
                         print(res)
                         print(text1[j])
-                        with open('book1.txt', 'w', encoding='utf-8') as file1:
-                            file1.writelines(res)
+                        result = text_analysis(res, language)
                         res = ''
-                        result = text_analysis('book1.txt', language)
                         find_chapter = str(find_chapter[0]).replace(' \n', '')
                         print(find_chapter)
                         end[find_chapter] = result
@@ -297,15 +297,15 @@ def analyser(book, language):
                         res += text1[j]
             elif not find_chapter and i == len(text1)-1 and not end:
                 print('yes')
-                result = text_analysis(book, language)
+                result = text_analysis("".join(text1), language)
                 end['Полный текст'] = result
     print(end)
 
 
 def listbox_poems():
-    poems_listbox = Listbox(width=40, height=10)
-    vsb1 = Scrollbar(orient="vertical", command=poems_listbox.yview)
-    vsb2 = Scrollbar(orient="horizontal", command=poems_listbox.xview)
+    poems_listbox = Listbox(width=40, height=10, bg='#F5F5F5')
+    vsb1 = Scrollbar(orient="vertical", bg='#F5F5F5', command=poems_listbox.yview)
+    vsb2 = Scrollbar(orient="horizontal", bg='#F5F5F5', command=poems_listbox.xview)
     vsb1.grid(row=4, column=2, sticky='ns')
     vsb2.grid(row=5, column=0, columnspan=2, sticky='ew')
     poems_listbox.configure(yscrollcommand=vsb1.set)
@@ -323,7 +323,7 @@ def print_poems(poems_listbox, books):
 def characters():
     global flag
     tabs_name[1].delete('help1')
-    label2 = Label(tabs_name[1], text="Найденные\nперсонажи:", fg="#000000")
+    label2 = Label(tabs_name[1], text="Найденные\nперсонажи:", fg="#000000", bg='#F5F5F5')
     label2.grid(row=1, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     print(end)
     chapters = [f'{key}' for key in end.keys()]
@@ -332,14 +332,14 @@ def characters():
 
 
 def print_characters(chapter):
-    tabs_name[1].delete('charact')
+    text = ['charact','not1']
+    forget(tabs_name[1],text)
     answer = ''
     print(type(end[chapter]), chapter)
     if end[chapter][characters_key]:
         for character in end[chapter][characters_key]:
             answer += str(character)
             answer += '\n'
-        tabs_name[2].delete('not1')
         print_text(tabs_name[1], answer, 80, 10,  'charact')
         #create_combobox(tabs_name[1], "Выберите персонажа:", end[chapter][characters_key], 0, 2)
     else:
@@ -359,7 +359,7 @@ def vocab():
         label11.grid_forget()
     if label1:
         label1.grid_forget()
-    label1 = Label(tabs_name[2], text="Найденные части\n речи:", fg="#000000")
+    label1 = Label(tabs_name[2], text="Найденные части\n речи:", fg="#000000", bg='#F5F5F5')
     label1.grid(row=1, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     chapters = [f'{key}' for key in end.keys()]
     flag = 0
@@ -374,9 +374,10 @@ def sentim():
         label1.grid_forget()
     if label11:
         label1.grid_forget()
-    label1 = Label(tabs_name[2], text="Negative and\n positive adverbs:", fg="#000000")
+    hist(tabs_name[2], [], [], 1, 1, 0)
+    label1 = Label(tabs_name[2], text="Negative and\n positive adverbs:", fg="#000000", bg='#F5F5F5')
     label1.grid(row=2, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-    label11 = Label(tabs_name[2], text="Negative and\n positive adjectives:", fg="#000000")
+    label11 = Label(tabs_name[2], text="Negative and\n positive adjectives:", fg="#000000", bg='#F5F5F5')
     label11.grid(row=2, column=1, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     chapters = [f'{key}' for key in end.keys()]
     flag = 3
@@ -416,7 +417,7 @@ def top():
     if label11:
         label11.grid_forget()
     hist(tabs_name[2], [], [], 1, 1, 0)
-    label1 = Label(tabs_name[2], text="TOP слов:", fg="#000000")
+    label1 = Label(tabs_name[2], text="TOP слов:", fg="#000000", bg='#F5F5F5')
     label1.grid(row=1, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     chapters = [f'{key}' for key in end.keys()]
     flag = 2
@@ -424,7 +425,8 @@ def top():
 
 
 def print_vocab(chapter):
-    tabs_name[2].delete('vocab')
+    text = ['vocab', 'not2']
+    forget(tabs_name[2], text)
     #chapter = chapter.split()[1]
     array1, array2 = [], []
     answer = ''
@@ -436,8 +438,6 @@ def print_vocab(chapter):
             array2.append(int(end[chapter][morph_statistic_key][post]))
             answer += f'{ind}.{post} - {end[chapter][morph_statistic_key][post]}'
             answer += '\n'
-        tabs_name[2].delete('vocab')
-        tabs_name[2].delete('not2')
         print_text(tabs_name[2], answer, 80, 10, 'vocab')
         hist(tabs_name[2], array1, array2, 1, 1, 1)
     else:
@@ -446,6 +446,8 @@ def print_vocab(chapter):
 
 def print_top(chapter):
     #chapter = chapter.split()[1]
+    text = ['top', 'not2']
+    forget(tabs_name[2], text)
     answer = ''
     ind = 0
     if end[chapter][frequency_key]:
@@ -454,27 +456,25 @@ def print_top(chapter):
             if ind < 21:
                 answer += f'№{ind} - {word[0]}'
                 answer += '\n'
-        tabs_name[2].delete('top')
-        tabs_name[2].delete('not2')
         print_text(tabs_name[2], answer, 80, 10, 'top')
     else:
         print_text(tabs_name[2], 'Not found!', 70, 10, 'not2')
 
 
 def labels():
-    label0 = Label(text="Авторы", fg="#eee", bg="#333")
+    label0 = Label(text="Authors", fg="#000000", bg='#F5F5F5', font='TimesNewRoman 12')
     label0.grid(row=1, column=0, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-    label2 = Label(text="Произведения", fg="#eee", bg="#333")
+    label2 = Label(text="Literature", fg="#000000", bg='#F5F5F5', font='TimesNewRoman 12')
     label2.grid(row=3, column=0, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-    label3 = Label(text="Результат исследования", fg="#eee", bg="#333")
+    label3 = Label(text="Research results", fg="#000000", bg='#F5F5F5', font='TimesNewRoman 12')
     label3.grid(row=1, column=4, columnspan=4, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
 
 
 def bottoms(r):
-    but0 = Button(r[1], text='Characters', command=characters)
-    but1 = Button(r[2], text='Vocabulary', command=vocab)
-    but2 = Button(r[2], text='TOP of words', command=top)
-    but3 = Button(r[2], text='Sentimental analysis', command=sentim)
+    but0 = Button(r[1], text='Characters', width=15, command=characters)
+    but1 = Button(r[2], text='Vocabulary', width=15, command=vocab)
+    but2 = Button(r[2], text='TOP of words', width=15, command=top)
+    but3 = Button(r[2], text='Sentimental analysis', width=20, command=sentim)
     but0.grid(row=0, column=0, ipadx=3, ipady=2, padx=1, pady=2)
     but1.grid(row=0, column=0, ipadx=10, ipady=2, padx=1, pady=2)
     but2.grid(row=0, column=1, ipadx=10, ipady=2,  padx=1, pady=2)
@@ -483,7 +483,7 @@ def bottoms(r):
 
 def loading(r):
     p = ttk.Progressbar(r, orient=HORIZONTAL, length=200, mode="determinate", takefocus=True, maximum=100)
-    label = Label(text="Loading...", fg="#000000")
+    label = Label(text="Loading...", fg="#000000", bg='#F5F5F5')
     label.pack(expand=1, anchor=S)
     p.pack(expand=1, anchor=N)
     for i in range(100):
@@ -496,8 +496,9 @@ def loading(r):
 
 if __name__ == '__main__':
     root = Tk()
-    root.title("Анализ литературных произведений")
+    root.title("Classic literature analysis")
     root.geometry("780x600+270+20")
+    root.configure(background='#F5F5F5')
     #loading(root)
     tabs_name = []
     labels()
