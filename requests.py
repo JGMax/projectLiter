@@ -54,23 +54,22 @@ def SearchAboutAuthor(findname):
         i += 1
 
     soup = WriteFile(url)
-    fullbiografy = soup.find_all('p')
+    fullbiografy = soup.find('p')
     information = soup.find_all('div', class_ = 'attributes_block')
     biografy = author[indexauthor] + '\n' + 'Годы жизни: ' + information[0].find('div', {'class': 'attributes_value'}).text + '\n'
     biografy += 'Страна рождения: ' + information[1].find('div', {'class': 'attributes_value'}).text + '\n'
     biografy += 'Сфера деятельности: ' + information[2].find('div', {'class': 'attributes_value'}).text + '\n\n'
 
-    for line in fullbiografy[:-7]:
-        count = 1
-        for element in line.text.split(' '):
-            biografy += element
-            if count % 11 != 0:
-                biografy += ' '
-            else:
-                biografy += '\n'
-                count = 1
-            count += 1
-        biografy += '\n'
+    count = 1
+    for element in fullbiografy.text.split(' '):
+        biografy += element
+        if count % 11 != 0:
+            biografy += ' '
+        else:
+            biografy += '\n'
+            count = 1
+        count += 1
+    biografy += '\n'
     Transition = soup.find('a', class_ = 'more_btn button button button__neutral button__true')
     url = 'https://www.culture.ru' + Transition.get('href')
 
@@ -93,7 +92,7 @@ def SearchBook(findname, namebooks, soup):
             url = 'https://www.culture.ru' + name.find('a', {'class': 'card-cover'}).get('href')
     soup = WriteFile(url)
     books = soup.find_all('a', class_ = 'about-entity_btn button button__primary')
-#soup = WriteFile(url)
+
     dowlend = books[1].get('href')
     pathfile = os.getcwd()
     pathfile += '\\' + str(namebooks[indexbook]) +'.epub'
@@ -101,28 +100,24 @@ def SearchBook(findname, namebooks, soup):
 
     book = epub.open_epub(pathfile)
     with open('book.txt', 'w', encoding = 'utf-8') as file:
-        pass
+        file.write(findname + '\n')
     i = 1
-    index = 1
     for item in book.opf.manifest.values():
         data = book.read_item(item)
-        #if :
         if i >= 3 and len(book.opf.manifest.values()) - 2 > i and '?xml' in str(data):
             with open('test.html', 'wb') as file:
                 data = data.decode('utf-8').replace('<br/>', ' \n')
                 data = data.replace('</p>', ' \n</p>')
-                data = data.replace('</title>', ' \n</title>')
                 data = data.encode('utf-8')
                 file.write(data)
             with open('test.html', 'rb') as file:
                 soup = BeautifulSoup(file, 'lxml')
-            for element in soup(["script", "style"]):
+            for element in soup(["script", "style", "title"]):
                 element.extract()
 
-            text = soup.get_text()
+            text = soup.get_text().replace("\n\n\n\n\n", "\n")
+
             with open('book.txt', 'a', encoding = 'utf-8') as file:
-                file.write('_' + str(index) + '_\n')
-                index += 1
                 count = 1
                 for element in text.split(' '):
                     file.write(element)
@@ -135,8 +130,6 @@ def SearchBook(findname, namebooks, soup):
                         count = 1
                     count += 1
                 file.write('\n')
-
-
         i += 1
     book.close()
     Delete(pathfile)
@@ -167,7 +160,6 @@ def SearchAboutAuthorEnglish(findname):
     biografy = soup.find('dd', {'itemprop': 'name'}).text + '\n'
     biografy += 'BIRTH DATE: ' + soup.find('dd', {'itemprop': 'birthDate'}).text + '\n'
     biografy += 'DEATH DATE: ' + soup.find('dd', {'itemprop': 'deathDate'}).text + '\n'
-   # print(biografy)
     soup = SearchSomething('query', authorenglish[indexauthor],"http://www.gutenberg.org/ebooks/search/?", header)
 
     allnamebooks = soup.find_all('span', class_='title')
