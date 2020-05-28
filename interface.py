@@ -12,6 +12,7 @@ from projectLiter.WordAnalyser.results_keys import morph_statistic_key, morph_po
     positive_key
 import threading
 import queue
+import numba
 from multiprocessing import Process
 from projectLiter.WordAnalyser.word_analyser import text_analysis
 from projectLiter.requests import SearchAboutAuthor, SearchBook, author, authorenglish, SearchAboutAuthorEnglish,\
@@ -158,11 +159,13 @@ def print_text(f, text_message, y, x,  tag):
     message = f.create_text(x, y, anchor=NW, text=text_message, fill="#000000", tag=tag)
 
 
+
 def cur_select_authors(evn):
     global find, label_biogr, lang, poem
     w = evn.widget
     i, value = 0, ''
     print('hello')
+    info('Search...')
     if w.curselection() != ():
         i = int(w.curselection()[0])
         value = w.get(i)
@@ -275,7 +278,7 @@ def analyser(book, language):
             text1.append(str(line))
         print(text1)
         regular = r'^Глава\s[0-9]{1,4}\s{0,2}|^[IVX]{1,7}\s{0,2}|Явление\s[а-я]{3,20}\s{0,2}|' \
-                  r'^ДЕЙСТВИЕ\s[а-яА-Я]{3,20}\s{0,2}'
+                  r'^ДЕЙСТВИЕ\s[а-яА-Я]{3,20}\s{0,2}|^ГЛАВА\s[IVX]{1,7}'
         for i in range(ind, len(text1)):
             find_chapter = re.findall(regular, text1[i])
             if find_chapter:
@@ -396,7 +399,7 @@ def print_sentim(chapter):
             for word in end[chapter][sentimental_key][adjective_key][positive_key]:
                 answer += f'{word} +\n'
             print(answer)
-            print_text(tabs_name[2], answer, 110, 110, 'sentimadject')
+            print_text(tabs_name[2], answer, 110, 150, 'sentimadject')
     if end[chapter][sentimental_key][adverb_key]:
             for word in end[chapter][sentimental_key][adverb_key][negative_key]:
                 answer1 += f'{word} -\n'
