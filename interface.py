@@ -1,6 +1,5 @@
 from tkinter import *
 import tkinter.ttk as ttk
-import numpy as np
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -12,8 +11,6 @@ from projectLiter.WordAnalyser.results_keys import morph_statistic_key, morph_po
     positive_key
 import threading
 import queue
-import numba
-from multiprocessing import Process
 from projectLiter.WordAnalyser.word_analyser import text_analysis
 from projectLiter.requests import SearchAboutAuthor, SearchBook, author, authorenglish, SearchAboutAuthorEnglish,\
     SearchBookEnglish
