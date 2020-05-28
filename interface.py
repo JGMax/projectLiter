@@ -1,6 +1,5 @@
 from tkinter import *
 import tkinter.ttk as ttk
-import numpy as np
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -12,7 +11,6 @@ from projectLiter.WordAnalyser.results_keys import morph_statistic_key, morph_po
     positive_key
 import threading
 import queue
-from multiprocessing import Process
 from projectLiter.WordAnalyser.word_analyser import text_analysis
 from projectLiter.requests import SearchAboutAuthor, SearchBook, author, authorenglish, SearchAboutAuthorEnglish,\
     SearchBookEnglish
@@ -56,6 +54,7 @@ but = 0
 combobox = 0
 label = 0
 flag = 0
+label0 = 0
 
 
 def tabs(name):
@@ -158,8 +157,11 @@ def print_text(f, text_message, y, x,  tag):
     message = f.create_text(x, y, anchor=NW, text=text_message, fill="#000000", tag=tag)
 
 
+
 def cur_select_authors(evn):
     global find, label_biogr, lang, poem
+    text = ['biogr']
+    forget(tabs_name[0],text)
     w = evn.widget
     i, value = 0, ''
     print('hello')
@@ -195,18 +197,20 @@ def cur_select_authors(evn):
     tabs_name[0].delete('help')
     print_text(tabs_name[0], find[0], 30, 10, 'biogr')
     print_poems(listbox_poems(), find[1])
+    info(f"Author: {value}, select a literature, analisis may take some time, please wait...")
 
 
 def info(text):
-    global root
-    label0 = Label(text=text, fg="#eee", bg="#333")
-    label0.grid(row=7, column=0, columnspan=2, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
+    global root, label0
+    if label0:
+        label0.grid_forget()
+    label0 = Label(text=text, fg="#000000", bg="#F5F5F5")
+    label0.grid(row=7, column=0, columnspan=6, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
 
 
 
 def cur_select_poems(evn):
     global tabs_name, book, root, lang, but, poem
-    #info("Analyze...")
     wid = evn.widget
     i, value = 0, ''
     if wid.curselection() != ():
@@ -248,7 +252,7 @@ def print_book():
         text = file.read()
     tabs_name[0].delete('biogr')
     #print_text(tabs_name[0], text, 50, 'text')
-    poem = Text(tabs_name[0], width=60, height=28)
+    poem = Text(tabs_name[0], width=60, height=28, bg='#F5F5F5')
     poem.insert(1.0, text)
     poem.grid(row=0, column=0, columnspan=5, ipadx=3, ipady=2, sticky=S, padx=2, pady=2)
 
@@ -267,6 +271,8 @@ def listbox_author():
 def analyser(book, language):
     global result, end
     end.clear()
+    count = 1
+    repl = ['.', ' ', '\n']
     res = ''
     ind = 0
     text1 = []
@@ -274,8 +280,9 @@ def analyser(book, language):
         for line in file:
             text1.append(str(line))
         print(text1)
-        regular = r'^Глава\s[0-9]{1,4}\s{0,2}|^[IVX]{1,7}\s{0,2}|Явление\s[а-я]{3,20}\s{0,2}|' \
-                  r'^ДЕЙСТВИЕ\s[а-яА-Я]{3,20}\s{0,2}'
+        regular = r'^Глава\s[0-9]{1,4}\s{0,2}$|^[IVX]{1,7}\s{0,2}$|Явление\s[а-я]{3,20}\s{0,2}$|' \
+                  r'^ДЕЙСТВИЕ\s[а-яА-Я]{3,20}\s{0,2}$|^ГЛАВА\s[IVX]{1,7}\s{0,2}$|^Явление\s[IVX]{1,7}\s{0,2}$|' \
+                  r'^Глава\s[а-я]{3,20}\s{0,2}$|^ГЛАВА\s[А-Я]{3,20}\s{0,2}$|^[IVX]{1,7}\.'
         for i in range(ind, len(text1)):
             find_chapter = re.findall(regular, text1[i])
             if find_chapter:
@@ -289,7 +296,10 @@ def analyser(book, language):
                         res = ''
                         find_chapter = str(find_chapter[0]).replace(' \n', '')
                         print(find_chapter)
-                        end[find_chapter] = result
+                        if f'{count}){find_chapter}' in end.keys():
+                            print(end.keys())
+                            count += 1
+                        end[f'{count}){find_chapter}'] = result
                         print(end)
                         ind = j
                         break
@@ -299,6 +309,7 @@ def analyser(book, language):
                 print('yes')
                 result = text_analysis("".join(text1), language)
                 end['Полный текст'] = result
+    info("The analysis is completed, you can start working with the results...")
     print(end)
 
 
@@ -396,7 +407,7 @@ def print_sentim(chapter):
             for word in end[chapter][sentimental_key][adjective_key][positive_key]:
                 answer += f'{word} +\n'
             print(answer)
-            print_text(tabs_name[2], answer, 110, 110, 'sentimadject')
+            print_text(tabs_name[2], answer, 110, 150, 'sentimadject')
     if end[chapter][sentimental_key][adverb_key]:
             for word in end[chapter][sentimental_key][adverb_key][negative_key]:
                 answer1 += f'{word} -\n'
