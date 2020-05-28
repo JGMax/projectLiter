@@ -50,7 +50,7 @@ def open_file(file_name):
 def text_analysis(text, language="ru"):    #def text_analysis(file_name, language="ru"):
     global top_of_words, characters, posts, statistic, dict_for_next_analysis, adj_sent, adv_sent, words, wordsDict
     resultDict = {}
-    #open_file(file_name)  # Закомментровать, если аргумент это текст
+    # open_file(file_name)  # Закомментровать, если аргумент это текст
 
     if len(text) == 0:
         return None
@@ -68,8 +68,11 @@ def text_analysis(text, language="ru"):    #def text_analysis(file_name, languag
         statistic = {}
         posts = []
         dict_for_next_analysis = morphAnalysisRus(words, posts, statistic, morph)
-        adj_sent = load_sentimental_words(dict_for_next_analysis['ADJF'])
-        adv_sent = load_sentimental_words(dict_for_next_analysis['ADVB'])
+        print(statistic)
+        adj_sent = load_sentimental_words(dict_for_next_analysis[adjective_key]) \
+            if adjective_key in dict_for_next_analysis else None
+        adv_sent = load_sentimental_words(dict_for_next_analysis[adverb_key]) \
+            if adverb_key in dict_for_next_analysis else None
     elif language == "en":
         top_of_words = word_frequency(words)
 
@@ -98,16 +101,16 @@ if __name__ == '__main__':
         # for post in results[morph_posts_key]:
         #     print(post + ' - ' + str(results[morph_statistic_key][post]))
         #
-        # print("Эмоциональная окраска прилагательных:")
-        # for word in results[sentimental_key][adjective_key][positive_key]:
-        #     print(f"{word} is {positive_key}")
-        # for word in results[sentimental_key][adjective_key][negative_key]:
-        #     print(f"{word} is {negative_key}")
-        #
-        # print("Эмоциональная окраска наречий:")
-        # for word in results[sentimental_key][adverb_key][positive_key]:
-        #     print(f"{word} is {positive_key}")
-        # for word in results[sentimental_key][adverb_key][negative_key]:
-        #     print(f"{word} is {negative_key}")
+        print("Эмоциональная окраска прилагательных:")
+        for word in results[sentimental_key][adjective_key][positive_key]:
+            print(f"{word} is {positive_key}")
+        for word in results[sentimental_key][adjective_key][negative_key]:
+            print(f"{word} is {negative_key}")
+
+        print("Эмоциональная окраска наречий:")
+        for word in results[sentimental_key][adverb_key][positive_key]:
+            print(f"{word} is {positive_key}")
+        for word in results[sentimental_key][adverb_key][negative_key]:
+            print(f"{word} is {negative_key}")
     else:
         print("Ошибка чтения")
