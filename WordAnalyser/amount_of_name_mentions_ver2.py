@@ -8,14 +8,14 @@ from projectLiter.WordAnalyser.config import morph
 
 #text = file.read()
 
-results = text_analysis(text, language = "ru")  # загружаем книгу
+#results = text_analysis(text, language = "ru")  # загружаем книгу
 
 words = nltk.word_tokenize(text)
 freq = nltk.FreqDist(words)
 
 dict_for_characters = results[characters_key]
 
-print(dict_for_characters)
+#print(dict_for_characters)
 
 dict_mentions_of_names = {}
 
