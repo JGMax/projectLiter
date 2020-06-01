@@ -203,7 +203,7 @@ def print_book():
     with codecs.open(book, encoding='utf-8') as file:
         text = file.read()
     tabs_name[0].delete('biogr')
-    poem = Text(tabs_name[0], width=60, height=28, bg='#F5F5F5')
+    poem = Text(tabs_name[0], width=60, height=28, bg='#F5F5F5', font=('Times', 12))
     poem.insert(1.0, text)
     poem.grid(row=0, column=0, columnspan=5, ipadx=3, ipady=2, sticky=S, padx=2, pady=2)
 
@@ -286,8 +286,7 @@ def character_freq():
     global flag, label2
     text = ['help1', 'charact', 'not1', 'freq']
     forget(tabs_name[1], text)
-    if label2:
-        label2.grid_forget()
+    clear_label(label2)
     print(end)
     character = []
     for key in end.keys():
@@ -295,32 +294,35 @@ def character_freq():
             for elem in end[key][characters_key]:
                 character.append(elem)
     flag = 4
-    create_combobox(tabs_name[1], 'Выберите персонажа', character, 1, 0)
+    create_combobox(tabs_name[1], 'Choose character:', character, 1, 0)
 
 
 def print_character_freq(character):
     count_chapter = list(end.keys())
     if len(count_chapter) == 1:
-        print_text(tabs_name[1], f'Персонаж {character} встречается в тексте {10} раз', 80, 10, 'freq')
+        print_text(tabs_name[1], f'Character {character} meets in the text {10} times', 80, 10, 'freq')
     else:
         graph(tabs_name[1], count_chapter, [])  # вместо [] будет массив частотности персонажа в главах
 
 
 def characters():
     global flag, label2
+    clear_label(label2)
     text = ['help1', 'charact', 'not1', 'freq']
     forget(tabs_name[1], text)
-    label2 = Label(tabs_name[1], text="Найденные\nперсонажи:", fg="#000000", bg='#F5F5F5')
-    label2.grid(row=1, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     print(end)
     chapters = [f'{key}' for key in end.keys()]
     flag = 1
-    create_combobox(tabs_name[1], 'Выберите главы', chapters, 1, 1)
+    create_combobox(tabs_name[1], 'Choose chapter:', chapters, 1, 1)
 
 
 def print_characters(chapter):
+    global label2
     text = ['help1', 'charact', 'not1', 'freq']
     forget(tabs_name[1], text)
+    clear_label(label2)
+    label2 = Label(tabs_name[1], text="Found characters:", fg="#000000", bg='#F5F5F5')
+    label2.grid(row=1, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     answer = ''
     print(type(end[chapter]), chapter)
     if end[chapter][characters_key]:
@@ -337,57 +339,60 @@ def forget(r, list):
         r.delete(row)
 
 
+def clear_label(lab):
+    if lab:
+        lab.grid_forget()
+
+
 def vocab():
     global label1, label11, flag
     text = ['top', 'not2', 'help2', 'sentimadverb', 'sentimadject', 'vocab', 'compar']
     forget(tabs_name[2], text)
-    if label11:
-        label11.grid_forget()
-    if label1:
-        label1.grid_forget()
-    label1 = Label(tabs_name[2], text="Найденные части\n речи:", fg="#000000", bg='#F5F5F5')
-    label1.grid(row=1, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
+    clear_label(label1)
+    clear_label(label11)
     chapters = [f'{key}' for key in end.keys()]
     flag = 0
-    create_combobox(tabs_name[2], 'Выберите главы', chapters, 1, 1)
+    create_combobox(tabs_name[2], 'Choose chapter:', chapters, 1, 1)
 
 
 def sentim():
     global label1, label11, flag
     text = ['top', 'not2', 'help2', 'sentimadverb', 'sentimadject', 'vocab', 'cpmpar']
     forget(tabs_name[2], text)
-    if label1:
-        label1.grid_forget()
-    if label11:
-        label1.grid_forget()
+    clear_label(label11)
+    clear_label(label1)
     hist(tabs_name[2], [], [], 1, 1, 0)
-    label1 = Label(tabs_name[2], text="Negative and\n positive adverbs:", fg="#000000", bg='#F5F5F5')
-    label1.grid(row=2, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-    label11 = Label(tabs_name[2], text="Negative and\n positive adjectives:", fg="#000000", bg='#F5F5F5')
-    label11.grid(row=2, column=1, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     chapters = [f'{key}' for key in end.keys()]
     flag = 3
-    create_combobox(tabs_name[2], 'Выберите главы', chapters, 1, 0)
+    create_combobox(tabs_name[2], 'Choose chapter:', chapters, 1, 0)
 
 
 def comparison():
     global label1, label11, flag
     text = ['top', 'not2', 'help2', 'sentimadverb', 'sentimadject', 'vocab', 'compar']
     forget(tabs_name[2], text)
-    if label1:
-        label1.grid_forget()
-    if label11:
-        label1.grid_forget()
+    clear_label(label1)
+    clear_label(label11)
     hist(tabs_name[2], [], [], 1, 1, 0)
     flag = 5
-    create_combobox(tabs_name[2], 'Выберите 2-ое\nпроизведение', find[1], 1, 0)
-    info('Select the second literature, analisis may take some time, please wait...')
+    if find:
+        create_combobox(tabs_name[2], 'Choose the second\nliterature:', find[1], 1, 0)
+        info('Select the second literature, analisis may take some time, please wait...')
+    else:
+        print_text(tabs_name[2], 'Not found the first literature!', 100, 10, 'not2')
 
 
 def print_sentim(chapter):
+    global label1, label11
     text = ['sentimadverb', 'not2', 'sentimadject', 'compar']
     forget(tabs_name[2], text)
     answer, answer1 = '', ''
+    clear_label(label1)
+    clear_label(label11)
+    label1 = Label(tabs_name[2], text="Negative and\n positive adverbs:", fg="#000000", bg='#F5F5F5')
+    label1.grid(row=2, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
+    label11 = Label(tabs_name[2], text="Negative and\n positive adjectives:", fg="#000000", bg='#F5F5F5')
+    label11.grid(row=2, column=1, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     if end[chapter][sentimental_key][adjective_key]:
             print('yes')
             for word in end[chapter][sentimental_key][adjective_key][negative_key]:
@@ -411,24 +416,24 @@ def top():
     global label1, label11, flag
     text = ['top', 'not2', 'help2', 'sentimadverb', 'sentimadject', 'vocab', 'compar']
     forget(tabs_name[2], text)
-    if label1:
-        label1.grid_forget()
-    if label11:
-        label11.grid_forget()
+    clear_label(label1)
+    clear_label(label11)
     hist(tabs_name[2], [], [], 1, 1, 0)
-    label1 = Label(tabs_name[2], text="TOP слов:", fg="#000000", bg='#F5F5F5')
-    label1.grid(row=1, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     chapters = [f'{key}' for key in end.keys()]
     flag = 2
-    create_combobox(tabs_name[2], 'Выберите главы', chapters, 1, 1)
+    create_combobox(tabs_name[2], 'Choose chapter:', chapters, 1, 1)
 
 
 def print_vocab(chapter):
+    global label11, label1
     text = ['vocab', 'not2']
     forget(tabs_name[2], text)
     array1, array2 = [], []
     answer = ''
     ind = 0
+    clear_label(label1)
+    label1 = Label(tabs_name[2], text="Found parts of\nspeech:", fg="#000000", bg='#F5F5F5')
+    label1.grid(row=1, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     if end[chapter][morph_posts_key]:
         for post in end[chapter][morph_posts_key]:
             ind += 1
@@ -436,14 +441,14 @@ def print_vocab(chapter):
             array2.append(int(end[chapter][morph_statistic_key][post]))
             answer += f'{ind}.{post} - {end[chapter][morph_statistic_key][post]}'
             answer += '\n'
-        print_text(tabs_name[2], answer, 80, 10, 'vocab')
-        hist(tabs_name[2], array1, array2, 1, 1, 1)
+        print_text(tabs_name[2], answer, 90, 10, 'vocab')
+        hist(tabs_name[2], array1, array2, 2, 1, 1)
     else:
-        print_text(tabs_name[2], 'Not found!', 70, 10, 'not2')
+        print_text(tabs_name[2], 'Not found!', 90, 10, 'not2')
 
 
 def print_compar(value):
-    global end
+    global end, book
     end_first_book = end.copy()
     end.clear()
     book = SearchBook(value, find[1], find[2])
@@ -452,8 +457,12 @@ def print_compar(value):
 
 
 def print_top(chapter):
+    global label1
     text = ['top', 'not2']
     forget(tabs_name[2], text)
+    clear_label(label1)
+    label1 = Label(tabs_name[2], text="TOP words:", fg="#000000", bg='#F5F5F5')
+    label1.grid(row=1, column=0, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     answer = ''
     ind = 0
     if end[chapter][frequency_key]:
@@ -464,7 +473,7 @@ def print_top(chapter):
                 answer += '\n'
         print_text(tabs_name[2], answer, 80, 10, 'top')
     else:
-        print_text(tabs_name[2], 'Not found!', 70, 10, 'not2')
+        print_text(tabs_name[2], 'Not found!', 80, 10, 'not2')
 
 
 def labels():
@@ -479,7 +488,7 @@ def labels():
 def bottoms(r):
     but0 = Button(r[1], text='Characters', width=15, command=characters)
     but1 = Button(r[2], text='Vocabulary', width=12, command=vocab)
-    but2 = Button(r[2], text='TOP of words', width=15, command=top)
+    but2 = Button(r[2], text='TOP words', width=15, command=top)
     but3 = Button(r[2], text='Sentimental analysis', width=15, command=sentim)
     but4 = Button(r[1], text='Character frequency in chapters', width=25, command=character_freq)
     but5 = Button(r[2], text='Comparison', width=10, command=comparison)
@@ -537,7 +546,7 @@ if __name__ == '__main__':
     label1 = 0
     label11 = 0
     label_biogr = 0
-    all_author = author + authorenglish
+    all_author = author
     lang = 0
     poem = 0
     but = 0
@@ -547,7 +556,7 @@ if __name__ == '__main__':
     label0 = 0
     root = Tk()
     root.title("Classic literature analysis")
-    root.geometry("780x600+270+20")
+    root.geometry("780x550+270+20")
     root.configure(background='#F5F5F5')
     loading(root)
     tabs_name = []
