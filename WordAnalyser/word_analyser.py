@@ -27,8 +27,11 @@ from projectLiter.WordAnalyser.results_keys import adjective_key
 from projectLiter.WordAnalyser.results_keys import adverb_key
 from projectLiter.WordAnalyser.results_keys import positive_key
 from projectLiter.WordAnalyser.results_keys import negative_key
+from projectLiter.WordAnalyser.results_keys import amount_of_characters_mentions
 
 from projectLiter.WordAnalyser.top_sentimental_words import load_sentimental_words
+
+from projectLiter.WordAnalyser.amount_of_name_mentions_ver2 import amount_of_name_mentions
 
 text = ""
 words = []
@@ -68,11 +71,11 @@ def text_analysis(text, language="ru"):    #def text_analysis(file_name, languag
         statistic = {}
         posts = []
         dict_for_next_analysis = morphAnalysisRus(words, posts, statistic, morph)
-        print(statistic)
         adj_sent = load_sentimental_words(dict_for_next_analysis[adjective_key]) \
             if adjective_key in dict_for_next_analysis else None
         adv_sent = load_sentimental_words(dict_for_next_analysis[adverb_key]) \
             if adverb_key in dict_for_next_analysis else None
+        resultDict[amount_of_characters_mentions] = dict_of_characters_mentions
     elif language == "en":
         top_of_words = word_frequency(words)
 
@@ -84,6 +87,7 @@ def text_analysis(text, language="ru"):    #def text_analysis(file_name, languag
     resultDict[morph_posts_key] = posts
     resultDict[morph_statistic_key] = statistic
     resultDict[dict_of_words_key] = dict_for_next_analysis
+    resultDict[amount_of_characters_mentions] = dict_of_characters_mentions
     return resultDict
     # print(words)
 
