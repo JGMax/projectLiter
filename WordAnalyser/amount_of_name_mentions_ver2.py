@@ -15,7 +15,7 @@ def amount_of_name_mentions(list_of_names_characters, words):
         amount = 0
         if ' ' in word:
             p = nltk.word_tokenize(word)
-            amount = freq[p[0]] + freq[morph.parse(p[0])[0].normal_form]
+            amount = freq[p[0]]
             for a in index:
                 if word_comparison(p[1], words[a]) == "True":
                     if (word_comparison(p[0], words[a - 1]) == "True") & a - 1 >= 0:
@@ -24,7 +24,7 @@ def amount_of_name_mentions(list_of_names_characters, words):
                         amount = amount
                     else:
                         amount = amount + 1
-                    word = morph.parse(p[0])[0].normal_form + ' ' + morph.parse(p[1])[0].normal_form
+                    word = p[0] + ' ' + p[1]
                     dict_mentions_of_names[word] = amount
         else:
             for a in index:

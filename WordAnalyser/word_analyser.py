@@ -75,7 +75,7 @@ def text_analysis(text, language="ru"):    #def text_analysis(file_name, languag
             if adjective_key in dict_for_next_analysis else None
         adv_sent = load_sentimental_words(dict_for_next_analysis[adverb_key]) \
             if adverb_key in dict_for_next_analysis else None
-        resultDict[amount_of_characters_mentions] = dict_of_characters_mentions
+        dict_of_characters_mentions = amount_of_name_mentions(characters, words)
     elif language == "en":
         top_of_words = word_frequency(words)
 
