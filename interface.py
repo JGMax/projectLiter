@@ -116,25 +116,17 @@ def cur_select_authors(evn):
         i = int(w.curselection()[0])
         value = w.get(i)
     if value and value in author:
-        que = queue.Queue()
-        print(value)
-        t = threading.Thread(target=lambda q, arg1: q.put(SearchAboutAuthor(arg1)), args=(que, value, ))
-        t.start()
-        print('yes')
-        t.join()
-        find = que.get()
+        func = SearchAboutAuthor
         lang = 'ru'
     elif value and value in authorenglish:
-        print('h')
-        que = queue.Queue()
-        print(value)
-        t = threading.Thread(target=lambda q, arg1: q.put(SearchAboutAuthorEnglish(arg1)), args=(que, value),
-                             daemon=True)
-        t.start()
-        t.join()
-        find = que.get()
+        func = SearchAboutAuthorEnglish
         lang = 'eng'
-        print('yes')
+    que = queue.Queue()
+    t = threading.Thread(target=lambda q, arg1: q.put(func(arg1)), args=(que, value),
+                         daemon=True)
+    t.start()
+    t.join()
+    find = que.get()
     if poem:
         poem.grid_forget()
     label_biogr = Label(tabs_name[0], text="Biography", fg="#000000")
