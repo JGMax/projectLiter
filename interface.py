@@ -8,7 +8,7 @@ import codecs
 import re
 from projectLiter.WordAnalyser.results_keys import morph_statistic_key, morph_posts_key, \
     characters_key, frequency_key, dict_of_words_key, sentimental_key, adjective_key, adverb_key, negative_key, \
-    positive_key
+    positive_key, amount_of_characters_mentions
 import threading
 import queue
 from projectLiter.WordAnalyser.word_analyser import text_analysis
@@ -37,17 +37,6 @@ def tabs(name):
     nb.add(f1, text='Text')
     nb.add(f2, text='Characters')
     nb.add(f3, text='Vocabulary')
-
-
-def create_scroll(f, h, w):
-    label = Label(f, text=' ', fg="#000000", width=int(w / 7.3))
-    label.grid(row=12, column=0, columnspan=12, sticky=W)
-    label2 = Label(f, text=' ', fg="#000000", height=int(h / 14.5))
-    label2.grid(row=0, column=11, rowspan=12, sticky=N)
-    vsb1 = Scrollbar(f, orient="vertical", command=f.yview)
-    vsb2 = Scrollbar(f, orient="horizontal", command=f.xview)
-    vsb1.grid(row=0, column=12, rowspan=11, sticky='ns')
-    vsb2.grid(row=11, column=0, columnspan=12, sticky='ew')
 
 
 def get_active_text(env):
@@ -83,16 +72,21 @@ def create_combobox(f2, text, values, x, y):
     combobox.bind('<<ComboboxSelected>>', get_active_text)
 
 
-def graph(f3, array1, array2):
+def graph(f3, array1, array2, flag_gr):
+    global graph_char
     f = Figure(figsize=(3, 3))
     a = f.add_subplot(111)
     a.plot(array1, array2, color='#228B22')
     canvas = FigureCanvasTkAgg(f, f3)
     canvas.draw()
-    canvas.get_tk_widget().grid(row=3, column=0, ipadx=3, ipady=2, padx=1, pady=2)
+    if graph_char:
+        graph_char.grid_forget()
+    graph_char = canvas.get_tk_widget()
+    if flag_gr:
+        graph_char.grid(row=2, column=0, columnspan=2, rowspan=2, ipadx=3, ipady=2, padx=1, pady=2)
 
 
-def hist(f2,  array1, array2, x, y, flag):
+def hist(f2,  array1, array2, x, y, flag_h):
     global histogram
     ff = Figure(figsize=(3, 3), dpi=100)
     xx = ff.add_subplot(111)
@@ -103,7 +97,7 @@ def hist(f2,  array1, array2, x, y, flag):
     if histogram:
         histogram.grid_forget()
     histogram = canvas.get_tk_widget()
-    if flag:
+    if flag_h:
         histogram.grid(row=x+1, column=y, columnspan=7, ipadx=3, ipady=2, padx=1, pady=2)
 
 
@@ -113,7 +107,7 @@ def print_text(f, text_message, y, x,  tag):
 
 def cur_select_authors(evn):
     global find, label_biogr, lang, poem
-    text = ['biogr']
+    text = ['biogr', 'help']
     forget(tabs_name[0], text)
     w = evn.widget
     i, value = 0, ''
@@ -129,7 +123,6 @@ def cur_select_authors(evn):
         print('yes')
         t.join()
         find = que.get()
-        #find = SearchAboutAuthor(value)
         lang = 'ru'
     elif value and value in authorenglish:
         print('h')
@@ -140,14 +133,12 @@ def cur_select_authors(evn):
         t.start()
         t.join()
         find = que.get()
-        #find = SearchAboutAuthorEnglish(value)
         lang = 'eng'
         print('yes')
     if poem:
         poem.grid_forget()
     label_biogr = Label(tabs_name[0], text="Biography", fg="#000000")
     label_biogr.grid(row=0, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-    tabs_name[0].delete('help')
     print_text(tabs_name[0], find[0], 30, 10, 'biogr')
     print_poems(listbox_poems(), find[1])
     info(f"Author: {value}, select a literature, analisis may take some time, please wait...")
@@ -170,23 +161,16 @@ def cur_select_poems(evn):
         value = wid.get(i)
     if value and value not in all_author:
         if lang == 'ru':
-            que = queue.Queue()
-            print(value)
-            t = threading.Thread(target=lambda q, arg1, arg2, arg3: q.put(SearchBook(arg1, arg2, arg3)),
-                                 args=(que, value, find[1], find[2]), daemon=True)
-            t.start()
-            t.join()
-            book = que.get()
-            #book = SearchBook(value, find[1], find[2])
+            func = SearchBook
         elif lang == 'eng':
-            #book = SearchBookEnglish(value, find[1], find[2])
-            que = queue.Queue()
-            print(value)
-            t = threading.Thread(target=lambda q, arg1, arg2, arg3: q.put(SearchBookEnglish(arg1, arg2, arg3)),
-                                 args=(que, value, find[1], find[2]), daemon=True)
-            t.start()
-            t.join()
-            book = que.get()
+            func = SearchBookEnglish
+        que = queue.Queue()
+        print(value)
+        t = threading.Thread(target=lambda q, arg1, arg2, arg3: q.put(func(arg1, arg2, arg3)),
+                             args=(que, value, find[1], find[2]), daemon=True)
+        t.start()
+        t.join()
+        book = que.get()
         if poem:
             poem.grid_forget()
         print_text(tabs_name[0], find[0], 30, 10, 'biogr')
@@ -223,7 +207,6 @@ def analyser(book, language):
     global result, end
     end.clear()
     count = 1
-    repl = ['.', ' ', '\n']
     res = ''
     ind = 0
     text1 = []
@@ -233,7 +216,7 @@ def analyser(book, language):
         print(text1)
         regular = r'^Глава\s[0-9]{1,4}\s{0,2}$|^[IVX]{1,7}\s{0,2}$|Явление\s[а-я]{3,20}\s{0,2}$|' \
                   r'^ДЕЙСТВИЕ\s[а-яА-Я]{3,20}\s{0,2}$|^ГЛАВА\s[IVX]{1,7}\s{0,2}$|^Явление\s[IVX]{1,7}\s{0,2}$|' \
-                  r'^Глава\s[а-я]{3,20}\s{0,2}$|^ГЛАВА\s[А-Я]{3,20}\s{0,2}$|^[IVX]{1,7}\.'
+                  r'^Глава\s[а-я]{3,20}\s{0,2}$|^ГЛАВА\s[А-Я]{3,20}\s{0,2}$|^[IVX]{1,7}\.|^Глава\s[IVX]{1,7}\.'
         for i in range(ind, len(text1)):
             find_chapter = re.findall(regular, text1[i])
             if find_chapter:
@@ -286,6 +269,8 @@ def character_freq():
     global flag, label2
     text = ['help1', 'charact', 'not1', 'freq']
     forget(tabs_name[1], text)
+    graph(tabs_name[1], [], [], 0)
+    listbox_for_graph([], 0)
     clear_label(label2)
     print(end)
     character = []
@@ -298,11 +283,42 @@ def character_freq():
 
 
 def print_character_freq(character):
-    count_chapter = list(end.keys())
-    if len(count_chapter) == 1:
-        print_text(tabs_name[1], f'Character {character} meets in the text {10} times', 80, 10, 'freq')
+    text = ['charact', 'freq']
+    forget(tabs_name[1], text)
+    graph(tabs_name[1], [], [], 0)
+    count_chapter = [i+1 for i in range(len(list(end.keys())))]
+    chapter = [str(key)[str(key).find(')')+1:] for key in end.keys()]
+    if len(chapter) == 1:
+        count = 0
+        if character in end[chapter[0]][amount_of_characters_mentions]:
+            count = end[chapter[0]][amount_of_characters_mentions][character]
+        print_text(tabs_name[1], f'Character {character} meets in the text {count} times', 80, 10, 'freq')
     else:
-        graph(tabs_name[1], count_chapter, [])  # вместо [] будет массив частотности персонажа в главах
+        char = []
+        for elem in end.keys():
+            if character in end[elem][amount_of_characters_mentions]:
+                char.append(end[elem][amount_of_characters_mentions][character])
+            else:
+                char.append(0)
+        graph(tabs_name[1], count_chapter, char, 1)
+        answer =[f'{count_chapter[i]}) {chapter[i]} - {char[i]}\n' for i in range(len(count_chapter))]
+        listbox_for_graph(answer, 1)
+
+
+def listbox_for_graph(text, flag_g):
+    global listbox_g, vsb_g
+    if flag_g:
+        listbox_g = Listbox(tabs_name[1], width=50, height=4, selectmode=SINGLE, exportselection=0, bg='#F5F5F5')
+        vsb_g = Scrollbar(tabs_name[1], orient="vertical", bg='#F5F5F5', command=listbox_g.yview)
+        vsb_g.grid(row=4, column=3, sticky='ns')
+        listbox_g.configure(yscrollcommand=vsb_g.set)
+        for row in text:
+            listbox_g.insert(END, row)
+        listbox_g.grid(row=4, column=0, columnspan=3, ipadx=3, ipady=2, sticky=N, padx=2, pady=2)
+    else:
+        if listbox_g and vsb_g:
+            listbox_g.grid_forget()
+            vsb_g.grid_forget()
 
 
 def characters():
@@ -310,6 +326,8 @@ def characters():
     clear_label(label2)
     text = ['help1', 'charact', 'not1', 'freq']
     forget(tabs_name[1], text)
+    listbox_for_graph([], 0)
+    graph(tabs_name[1], [], [], 0)
     print(end)
     chapters = [f'{key}' for key in end.keys()]
     flag = 1
@@ -539,14 +557,18 @@ if __name__ == '__main__':
               characters_key: [],
               morph_posts_key: [],
               morph_statistic_key: [],
-              dict_of_words_key: []}
+              dict_of_words_key: [],
+              amount_of_characters_mentions: []}
     end = {}
     histogram = 0
+    graph_char = 0
     label2 = 0
     label1 = 0
     label11 = 0
     label_biogr = 0
     all_author = author
+    listbox_g = 0
+    vsb_g = 0
     lang = 0
     poem = 0
     but = 0
