@@ -39,17 +39,6 @@ def tabs(name):
     nb.add(f3, text='Vocabulary')
 
 
-def create_scroll(f, h, w):
-    label = Label(f, text=' ', fg="#000000", width=int(w / 7.3))
-    label.grid(row=12, column=0, columnspan=12, sticky=W)
-    label2 = Label(f, text=' ', fg="#000000", height=int(h / 14.5))
-    label2.grid(row=0, column=11, rowspan=12, sticky=N)
-    vsb1 = Scrollbar(f, orient="vertical", command=f.yview)
-    vsb2 = Scrollbar(f, orient="horizontal", command=f.xview)
-    vsb1.grid(row=0, column=12, rowspan=11, sticky='ns')
-    vsb2.grid(row=11, column=0, columnspan=12, sticky='ew')
-
-
 def get_active_text(env):
     w = env.widget
     model = w.current()
@@ -113,7 +102,7 @@ def print_text(f, text_message, y, x,  tag):
 
 def cur_select_authors(evn):
     global find, label_biogr, lang, poem
-    text = ['biogr']
+    text = ['biogr', 'help']
     forget(tabs_name[0], text)
     w = evn.widget
     i, value = 0, ''
@@ -147,7 +136,6 @@ def cur_select_authors(evn):
         poem.grid_forget()
     label_biogr = Label(tabs_name[0], text="Biography", fg="#000000")
     label_biogr.grid(row=0, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
-    tabs_name[0].delete('help')
     print_text(tabs_name[0], find[0], 30, 10, 'biogr')
     print_poems(listbox_poems(), find[1])
     info(f"Author: {value}, select a literature, analisis may take some time, please wait...")
