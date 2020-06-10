@@ -9,4 +9,4 @@ removeSymbols = '»,\\:/;()\r'
 
 morph = pymorphy2.MorphAnalyzer()
 
-max_freq_top_size = 500
+max_freq_top_size = 30
