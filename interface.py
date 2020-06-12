@@ -468,15 +468,14 @@ def bottoms(r):
 if __name__ == '__main__':
     help_text = "\t-=-=Welcome to the classic literature analysis application=-=-\n\n" \
                 "Here you can see the writer's biography, find his poems, and also analysis:\n" \
-                "find characters, top of the most popular words,a dictionary of vocabulary,\n" \
-                "comparison between two literatures and also character frequency in chapters.\n" \
+                "find characters, top of the most popular words,a dictionary of vocabulary\n" \
+                "and also character frequency in chapters.\n" \
                 "First, you must select the author’s name from the top list and select a literature \n" \
                 "from the second list."
     help_text1 = 'Here you can find out the main characters of the literature, as well as see the frequency\n' \
                  'of their occurrence in each chapter.'
     help_text2 = 'Here you can see the amount of each vocabulary in a literature, also see the top of\n' \
-                 'the most popular words in a work, list of the positive and \nnegative adverbs and adjectives' \
-                 'and comparison between two literatures.'
+                 'the most popular words in a work, list of the positive and \nnegative adverbs and adjectives.'
 
     find = ()
     book = ''
