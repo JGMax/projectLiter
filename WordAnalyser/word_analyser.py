@@ -30,7 +30,7 @@ from projectLiter.WordAnalyser.results_keys import amount_of_characters_mentions
 
 from projectLiter.WordAnalyser.top_sentimental_words import load_sentimental_words
 
-from projectLiter.WordAnalyser.amount_of_name_mentions_ver2 import amount_of_name_mentions
+from projectLiter.WordAnalyser.amount_of_name_mentions import amount_of_name_mentions
 
 text = ""
 words = []
