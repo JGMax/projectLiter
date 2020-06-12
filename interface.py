@@ -3,9 +3,9 @@ import tkinter.ttk as ttk
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from time import sleep
 import codecs
 import re
+import nltk
 from projectLiter.WordAnalyser.results_keys import morph_statistic_key, morph_posts_key, \
     characters_key, frequency_key, dict_of_words_key, sentimental_key, adjective_key, adverb_key, negative_key, \
     positive_key, amount_of_characters_mentions
@@ -15,6 +15,7 @@ from projectLiter.WordAnalyser.word_analyser import text_analysis
 from projectLiter.requests import SearchAboutAuthor, SearchBook, author, authorenglish, SearchAboutAuthorEnglish,\
     SearchBookEnglish
 matplotlib.use("TkAgg")
+nltk.download('punkt')
 
 
 def tabs(name):
@@ -55,8 +56,6 @@ def get_active_text(env):
         print_sentim(active)
     elif flag == 4:
         print_character_freq(active)
-    elif flag == 5:
-        print_compar(active)
 
 
 def create_combobox(f2, text, values, x, y):
@@ -86,7 +85,7 @@ def graph(f3, array1, array2, flag_gr):
         graph_char.grid(row=2, column=0, columnspan=2, rowspan=2, ipadx=3, ipady=2, padx=1, pady=2)
 
 
-def hist(f2,  array1, array2, x, y, flag_h):
+def hist(f2, array2, x, y, flag_h):
     global histogram
     ff = Figure(figsize=(3, 3), dpi=100)
     xx = ff.add_subplot(111)
@@ -111,7 +110,6 @@ def cur_select_authors(evn):
     forget(tabs_name[0], text)
     w = evn.widget
     i, value = 0, ''
-    print('hello')
     if w.curselection() != ():
         i = int(w.curselection()[0])
         value = w.get(i)
@@ -133,7 +131,7 @@ def cur_select_authors(evn):
     label_biogr.grid(row=0, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     print_text(tabs_name[0], find[0], 30, 10, 'biogr')
     print_poems(listbox_poems(), find[1])
-    info(f"Author: {value}, select a literature, analisis may take some time, please wait...")
+    info(f"Author: {value}, select a literature, analysis may take some time, please wait...")
 
 
 def info(text):
@@ -157,7 +155,6 @@ def cur_select_poems(evn):
         elif lang == 'eng':
             func = SearchBookEnglish
         que = queue.Queue()
-        print(value)
         t = threading.Thread(target=lambda q, arg1, arg2, arg3: q.put(func(arg1, arg2, arg3)),
                              args=(que, value, find[1], find[2]), daemon=True)
         t.start()
@@ -205,38 +202,28 @@ def analyser(book, language):
     with open(book, 'r', encoding='utf-8') as file:
         for line in file:
             text1.append(str(line))
-        print(text1)
         regular = r'^Глава\s[0-9]{1,4}\s{0,2}$|^[IVX]{1,7}\s{0,2}$|Явление\s[а-я]{3,20}\s{0,2}$|' \
                   r'^ДЕЙСТВИЕ\s[а-яА-Я]{3,20}\s{0,2}$|^ГЛАВА\s[IVX]{1,7}\s{0,2}$|^Явление\s[IVX]{1,7}\s{0,2}$|' \
                   r'^Глава\s[а-я]{3,20}\s{0,2}$|^ГЛАВА\s[А-Я]{3,20}\s{0,2}$|^[IVX]{1,7}\.|^Глава\s[IVX]{1,7}\.'
         for i in range(ind, len(text1)):
             find_chapter = re.findall(regular, text1[i])
             if find_chapter:
-                print(i, len(text1), find_chapter)
                 for j in range(i+1, len(text1)):
-                    print(find_chapter)
                     if re.findall(regular, text1[j]) or j == len(text1)-1:
-                        print(res)
-                        print(text1[j])
                         result = text_analysis(res, language)
                         res = ''
                         find_chapter = str(find_chapter[0]).replace(' \n', '')
-                        print(find_chapter)
                         if f'{count}){find_chapter}' in end.keys():
-                            print(end.keys())
                             count += 1
                         end[f'{count}){find_chapter}'] = result
-                        print(end)
                         ind = j
                         break
                     elif not re.findall(regular, text1[j]):
                         res += text1[j]
             elif not find_chapter and i == len(text1)-1 and not end:
-                print('yes')
                 result = text_analysis("".join(text1), language)
                 end['Полный текст'] = result
     info("The analysis is completed, you can start working with the results...")
-    print(end)
 
 
 def listbox_poems():
@@ -264,7 +251,6 @@ def character_freq():
     graph(tabs_name[1], [], [], 0)
     listbox_for_graph([], 0)
     clear_label(label2)
-    print(end)
     character = []
     for key in end.keys():
         if end[key][characters_key]:
@@ -320,7 +306,6 @@ def characters():
     forget(tabs_name[1], text)
     listbox_for_graph([], 0)
     graph(tabs_name[1], [], [], 0)
-    print(end)
     chapters = [f'{key}' for key in end.keys()]
     flag = 1
     create_combobox(tabs_name[1], 'Choose chapter:', chapters, 1, 1)
@@ -334,7 +319,6 @@ def print_characters(chapter):
     label2 = Label(tabs_name[1], text="Found characters:", fg="#000000", bg='#F5F5F5')
     label2.grid(row=1, column=0, columnspan=5, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     answer = ''
-    print(type(end[chapter]), chapter)
     if end[chapter][characters_key]:
         for character in end[chapter][characters_key]:
             answer += str(character)
@@ -371,25 +355,10 @@ def sentim():
     forget(tabs_name[2], text)
     clear_label(label11)
     clear_label(label1)
-    hist(tabs_name[2], [], [], 1, 1, 0)
+    hist(tabs_name[2], [], 1, 1, 0)
     chapters = [f'{key}' for key in end.keys()]
     flag = 3
     create_combobox(tabs_name[2], 'Choose chapter:', chapters, 1, 0)
-
-
-def comparison():
-    global label1, label11, flag
-    text = ['top', 'not2', 'help2', 'sentimadverb', 'sentimadject', 'vocab', 'compar']
-    forget(tabs_name[2], text)
-    clear_label(label1)
-    clear_label(label11)
-    hist(tabs_name[2], [], [], 1, 1, 0)
-    flag = 5
-    if find:
-        create_combobox(tabs_name[2], 'Choose the second\nliterature:', find[1], 1, 0)
-        info('Select the second literature, analisis may take some time, please wait...')
-    else:
-        print_text(tabs_name[2], 'Not found the first literature!', 100, 10, 'not2')
 
 
 def print_sentim(chapter):
@@ -409,14 +378,12 @@ def print_sentim(chapter):
                 answer += f'{word} -\n'
             for word in end[chapter][sentimental_key][adjective_key][positive_key]:
                 answer += f'{word} +\n'
-            print(answer)
-            print_text(tabs_name[2], answer, 110, 150, 'sentimadject')
+            print_text(tabs_name[2], answer, 110, 180, 'sentimadject')
     if end[chapter][sentimental_key][adverb_key]:
             for word in end[chapter][sentimental_key][adverb_key][negative_key]:
                 answer1 += f'{word} -\n'
             for word in end[chapter][sentimental_key][adverb_key][positive_key]:
                 answer1 += f'{word} +\n'
-            print(answer1)
             print_text(tabs_name[2], answer1, 110, 10, 'sentimadverb')
     if not answer and not answer1:
         print_text(tabs_name[2], 'Not found!', 110, 10, 'not2')
@@ -428,7 +395,7 @@ def top():
     forget(tabs_name[2], text)
     clear_label(label1)
     clear_label(label11)
-    hist(tabs_name[2], [], [], 1, 1, 0)
+    hist(tabs_name[2], [], 1, 1, 0)
     chapters = [f'{key}' for key in end.keys()]
     flag = 2
     create_combobox(tabs_name[2], 'Choose chapter:', chapters, 1, 1)
@@ -438,7 +405,7 @@ def print_vocab(chapter):
     global label11, label1
     text = ['vocab', 'not2']
     forget(tabs_name[2], text)
-    array1, array2 = [], []
+    array2 = []
     answer = ''
     ind = 0
     clear_label(label1)
@@ -447,23 +414,13 @@ def print_vocab(chapter):
     if end[chapter][morph_posts_key]:
         for post in end[chapter][morph_posts_key]:
             ind += 1
-            array1.append(post)
             array2.append(int(end[chapter][morph_statistic_key][post]))
             answer += f'{ind}.{post} - {end[chapter][morph_statistic_key][post]}'
             answer += '\n'
         print_text(tabs_name[2], answer, 90, 10, 'vocab')
-        hist(tabs_name[2], array1, array2, 2, 1, 1)
+        hist(tabs_name[2], array2, 2, 1, 1)
     else:
         print_text(tabs_name[2], 'Not found!', 90, 10, 'not2')
-
-
-def print_compar(value):
-    global end, book
-    end_first_book = end.copy()
-    end.clear()
-    book = SearchBook(value, find[1], find[2])
-    analyser(book, 'ru')
-    info('The analysis is completed, you can see the comparison...')
 
 
 def print_top(chapter):
@@ -497,44 +454,28 @@ def labels():
 
 def bottoms(r):
     but0 = Button(r[1], text='Characters', width=15, command=characters)
-    but1 = Button(r[2], text='Vocabulary', width=12, command=vocab)
+    but1 = Button(r[2], text='Vocabulary', width=20, command=vocab)
     but2 = Button(r[2], text='TOP words', width=15, command=top)
-    but3 = Button(r[2], text='Sentimental analysis', width=15, command=sentim)
+    but3 = Button(r[2], text='Sentimental analysis', width=20, command=sentim)
     but4 = Button(r[1], text='Character frequency in chapters', width=25, command=character_freq)
-    but5 = Button(r[2], text='Comparison', width=10, command=comparison)
     but0.grid(row=0, column=0, ipadx=3, ipady=2, padx=1, pady=2)
     but4.grid(row=0, column=1, ipadx=3, ipady=2, padx=1, pady=2)
     but1.grid(row=0, column=0, ipadx=10, ipady=2, padx=1, pady=2)
     but2.grid(row=0, column=1, ipadx=10, ipady=2,  padx=1, pady=2)
     but3.grid(row=0, column=2, ipadx=10, ipady=2, padx=1, pady=2)
-    but5.grid(row=0, column=3, ipadx=10, ipady=2, padx=1, pady=2)
-
-
-def loading(r):
-    p = ttk.Progressbar(r, orient=HORIZONTAL, length=200, mode="determinate", takefocus=True, maximum=100)
-    label = Label(text="Loading...", fg="#000000", bg='#F5F5F5')
-    label.pack(expand=1, anchor=S)
-    p.pack(expand=1, anchor=N)
-    for i in range(100):
-        sleep(0.05)
-        p.step()
-        r.update()
-    for ele in r.winfo_children():
-        ele.destroy()
 
 
 if __name__ == '__main__':
     help_text = "\t-=-=Welcome to the classic literature analysis application=-=-\n\n" \
                 "Here you can see the writer's biography, find his poems, and also analysis:\n" \
-                "find characters, top of the most popular words,a dictionary of vocabulary,\n" \
-                "comparison between two literatures and also character frequency in chapters.\n" \
+                "find characters, top of the most popular words,a dictionary of vocabulary\n" \
+                "and also character frequency in chapters.\n" \
                 "First, you must select the author’s name from the top list and select a literature \n" \
                 "from the second list."
     help_text1 = 'Here you can find out the main characters of the literature, as well as see the frequency\n' \
                  'of their occurrence in each chapter.'
     help_text2 = 'Here you can see the amount of each vocabulary in a literature, also see the top of\n' \
-                 'the most popular words in a work, list of the positive and \nnegative adverbs and adjectives' \
-                 'and comparison between two literatures.'
+                 'the most popular words in a work, list of the positive and \nnegative adverbs and adjectives.'
 
     find = ()
     book = ''
@@ -551,28 +492,12 @@ if __name__ == '__main__':
               morph_statistic_key: [],
               dict_of_words_key: [],
               amount_of_characters_mentions: []}
-    end = {}
-    histogram = 0
-    graph_char = 0
-    label2 = 0
-    label1 = 0
-    label11 = 0
-    label_biogr = 0
-    all_author = author
-    listbox_g = 0
-    vsb_g = 0
-    lang = 0
-    poem = 0
-    but = 0
-    combobox = 0
-    label = 0
-    flag = 0
-    label0 = 0
+    end, histogram, graph_char, label2, label1, label11, label_biogr, all_author = {}, 0, 0, 0, 0, 0, 0, author
+    listbox_g, vsb_g, lang, poem, but, combobox, label, flag, label0 = 0, 0, 0, 0, 0, 0, 0, 0, 0
     root = Tk()
     root.title("Classic literature analysis")
     root.geometry("780x550+270+20")
     root.configure(background='#F5F5F5')
-    loading(root)
     tabs_name = []
     labels()
     listbox_author()
