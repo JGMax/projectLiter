@@ -1,8 +1,8 @@
 from projectLiter.WordAnalyser.ner_model_creating import ner
 
-from projectLiter.WordAnalyser.utility import morphNameFilter
-from projectLiter.WordAnalyser.utility import sameNameFilter
-from projectLiter.WordAnalyser.utility import properNameFilter
+from projectLiter.WordAnalyser.filters import morphNameFilter
+from projectLiter.WordAnalyser.filters import sameNameFilter
+from projectLiter.WordAnalyser.filters import properNameFilter
 
 from projectLiter.WordAnalyser.formatText import remove
 from projectLiter.WordAnalyser.config import triggerSymbols
@@ -22,8 +22,7 @@ def slov_NER_finder(text, wordsDict, words, morph):
             if parseResult[0] == "1":
                 character = text[span.start:span.stop]
                 character = remove(character, triggerSymbols)
-                character = properNameFilter(character, wordsDict, words, triggerSymbols, morph,
-                                             [span.start, span.stop])
+                character = properNameFilter(character, wordsDict, words, triggerSymbols, morph)
                 if character:
                     sameNameFilter(characters, character, morph)
 
@@ -47,12 +46,13 @@ def natasha_NER_Finder(text, wordsDict, words, morph):
                 if fact:
                     character += fact.title() + ' '
             character = character.strip()
-            character = properNameFilter(character, wordsDict, words, triggerSymbols, morph, match.span)
+            character = properNameFilter(character, wordsDict, words, triggerSymbols, morph)
             if character:
                 sameNameFilter(characters, character, morph)
         del parseResult
     return characters
     # print(characters)
+
 
 def charactersFinderRus(text, wordsDict, words, morph):
     slovCharacters = slov_NER_finder(text, wordsDict, words, morph)

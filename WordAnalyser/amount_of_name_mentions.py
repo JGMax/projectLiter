@@ -1,31 +1,39 @@
 import nltk
 import pymorphy2
-from projectLiter.WordAnalyser.search_high_register_words import upper
-
-# file = open('book4.txt',encoding = 'utf - 8') загружаю книгу
-
-#text = file.read() # читаю текст
-words = nltk.word_tokenize(text)
-High_register_words = []
-i = 0
-for w in words:
-    i = i + 1
-    if upper(w)!='False':
-        if ((words[i - 2] !='.') & (words[i - 2] !='!') & (words[i - 2] !='?')):
-            High_register_words.append(w)
+from projectLiter.WordAnalyser.word_similarity_comparement import word_comparison
+from projectLiter.WordAnalyser.config import morph
 
 
-prob_thresh = 0.4
-morph = pymorphy2.MorphAnalyzer()
-names = []
+def amount_of_name_mentions(list_of_names_characters, words):
+    freq = nltk.FreqDist(words)
 
-for word in High_register_words:
-    for p in morph.parse(word):
-        if 'Name' in p.tag and p.score >= prob_thresh:
-            names.append(p.normal_form)
-freq = nltk.FreqDist(names)
+    dict_mentions_of_names = {}
 
-names = freq.most_common() # имена и их упоминания
+    index = range(len(words))
 
-#print(names) #вывод имен вместе с их количеством упоминаний
+    for word in list_of_names_characters:
+        amount = 0
+        if ' ' in word:
+            p = nltk.word_tokenize(word)
+            amount = freq[p[0]]
+            for a in index:
+                if word_comparison(p[1], words[a]) == "True":
+                    if (word_comparison(p[0], words[a - 1]) == "True") & a - 1 >= 0:
+                        amount = amount
+                    elif (word_comparison(p[0], words[a + 1]) == "True") & a + 1 <= len(words) - 1:
+                        amount = amount
+                    else:
+                        amount = amount + 1
+                    word = p[0] + ' ' + p[1]
+                    dict_mentions_of_names[word] = amount
+        else:
+            for a in index:
+                if word_comparison(word, words[a]) == "True":
+                    amount = amount + 1
+            dict_mentions_of_names[word] = amount
+            # print(dict_mentions_of_names) #словарь с упоминаниями персонажей
+
+    return dict_mentions_of_names
+
+
 

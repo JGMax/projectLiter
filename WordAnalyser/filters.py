@@ -1,15 +1,4 @@
 
-def wordsCounterDict(wordsList, morph):
-    wordsDict = {}
-    for i, word in enumerate(wordsList):
-        word = morph.parse(word.lower())[0].normal_form
-        if word in wordsDict:
-            wordsDict[word][0] += 1
-            wordsDict[word].append(i)
-        else:
-            wordsDict[word] = [1, i]
-    return wordsDict
-
 
 # def sameNameFilter(charactersList, characterString, morph):
 #     if not charactersList:
@@ -156,7 +145,7 @@ def morphNameFilter(resultsList, wordNumber=0, case=0, gender=0, number=0, tense
 #             i -= 1
 #         i += 1
 
-def properNameFilter(characterString, wordsDict, wordsList, triggeredSymbols, morph, slice=None):
+def properNameFilter(characterString, wordsDict, wordsList, triggeredSymbols, morph):
     if "\r" in characterString:
         characterString = characterString.replace("\r", ' ')
     characterWords = characterString.split(" ")
@@ -165,35 +154,22 @@ def properNameFilter(characterString, wordsDict, wordsList, triggeredSymbols, mo
     if characterWords[0] not in wordsDict:
         characterWords[0] = morph.parse(characterWords[0])[0].normal_form
 
-    if slice:
-        try:
-            if wordsDict[characterWords[0]][0] > 1:
-                for i, word in enumerate(wordsDict[characterWords[0]]):
-                    if i == 0:
-                        continue
-                    if not wordsList[word].istitle():
-                        return None
-
-                    for trigger in triggeredSymbols:
-                        if word > 0 and trigger in wordsList[word - 1]:
-                            break
-                    else:
-                        return characterString
-                else:
+    try:
+        if wordsDict[characterWords[0]][0] > 1:
+            for i, word in enumerate(wordsDict[characterWords[0]]):
+                if i == 0:
+                    continue
+                if not wordsList[word].istitle():
                     return None
+
+                for trigger in triggeredSymbols:
+                    if word > 0 and trigger in wordsList[word - 1]:
+                        break
+                else:
+                    return characterString
             else:
                 return None
-        except KeyError:
+        else:
             return None
-    else:
-        for i, word in enumerate(wordsDict[characterWords[0]]):
-            if i == 0:
-                continue
-            if not wordsList[word].istitle():
-                return None
-            for trigger in triggeredSymbols:
-                if word > 0 and trigger in wordsList[word - 1]:
-                    break
-            else:
-                return characterString
-            return None
+    except KeyError:
+        return None
