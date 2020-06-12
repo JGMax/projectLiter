@@ -1,8 +1,8 @@
 from projectLiter.WordAnalyser.ner_model_creating import ner
 
-from projectLiter.WordAnalyser.utility import morphNameFilter
-from projectLiter.WordAnalyser.utility import sameNameFilter
-from projectLiter.WordAnalyser.utility import properNameFilter
+from projectLiter.WordAnalyser.filters import morphNameFilter
+from projectLiter.WordAnalyser.filters import sameNameFilter
+from projectLiter.WordAnalyser.filters import properNameFilter
 
 from projectLiter.WordAnalyser.formatText import remove
 from projectLiter.WordAnalyser.config import triggerSymbols
