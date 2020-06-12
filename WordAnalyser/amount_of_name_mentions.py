@@ -1,6 +1,6 @@
 import nltk
 import pymorphy2
-from projectLiter.WordAnalyser.word_similarity_comparement_ver2 import word_comparison
+from projectLiter.WordAnalyser.word_similarity_comparement import word_comparison
 from projectLiter.WordAnalyser.config import morph
 
 
