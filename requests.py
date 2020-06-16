@@ -28,9 +28,9 @@ def SearchSomething(key, value, website, header):
         print(sys.exc_info()[1])
 
 def FindIndex(name, search):
-    for i in range(len(search)):
-        if name == search[i]:
-            return i
+    # for i in range(len(search)):
+    #     if name == search[i]: #         return i
+    return search.index(name)
 
 def Delete(myFile):
     os.remove(myFile)
