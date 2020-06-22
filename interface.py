@@ -373,7 +373,6 @@ def print_sentim(chapter):
     label11 = Label(tabs_name[2], text="Negative and\n positive adjectives:", fg="#000000", bg='#F5F5F5')
     label11.grid(row=2, column=1, ipadx=3, ipady=2, sticky=W, padx=2, pady=2)
     if end[chapter][sentimental_key][adjective_key]:
-            print('yes')
             for word in end[chapter][sentimental_key][adjective_key][negative_key]:
                 answer += f'{word} -\n'
             for word in end[chapter][sentimental_key][adjective_key][positive_key]:
